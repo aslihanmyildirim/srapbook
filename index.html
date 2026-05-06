@@ -6,6 +6,7 @@
 <title>Scrapbook Studio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Patrick+Hand&family=Shadows+Into+Light&family=Dancing+Script:wght@400;700&family=Indie+Flower&family=Kalam:wght@400;700&family=Satisfy&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 /* ============================================
    SCRAPBOOK STUDIO - COMPLETE STYLES
@@ -64,6 +65,309 @@ body {
   overflow: hidden;
   color: var(--ink);
   user-select: none;
+}
+
+body.login-locked .app,
+body.login-locked .cloud-status {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.login-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    linear-gradient(rgba(255,255,255,0.12), rgba(255,255,255,0.12)),
+    url('background1.jpeg');
+  background-size: cover;
+  background-position: center;
+  transition: opacity 0.45s ease, visibility 0.45s ease;
+}
+
+.login-gate.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.closed-book-login {
+  width: min(92vw, 480px);
+  min-height: 600px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  perspective: 1400px;
+}
+
+.closed-book-cover {
+  width: min(86vw, 420px);
+  min-height: 550px;
+  padding: 52px 44px 40px 72px;
+  border-radius: 30px;
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, rgba(74,24,24,0.35), transparent 12%),
+    linear-gradient(135deg, #7b3430 0%, #52201f 48%, #3d1717 100%);
+  box-shadow:
+    18px 22px 50px rgba(0,0,0,0.35),
+    inset 10px 0 18px rgba(255,255,255,0.08),
+    inset -12px 0 20px rgba(0,0,0,0.18);
+  color: #f7efe6;
+  transform: none;
+  transform-origin: 54px 50%;
+  backface-visibility: hidden;
+}
+
+.closed-book-cover::before {
+  content: none;
+}
+
+.closed-book-page {
+  position: absolute;
+  width: min(86vw, 406px);
+  min-height: 530px;
+  border-radius: 24px 30px 30px 24px;
+  background:
+    radial-gradient(circle at 24% 18%, rgba(255,255,255,0.55), transparent 22%),
+    repeating-linear-gradient(0deg, rgba(118,84,48,0.045) 0 1px, transparent 1px 13px),
+    linear-gradient(90deg, rgba(150,118,78,0.2), transparent 13%),
+    linear-gradient(135deg, #fff9ee 0%, #f2dfbd 100%);
+  box-shadow: 14px 18px 38px rgba(0,0,0,0.22), inset 9px 0 18px rgba(120,80,40,0.12);
+  transform-origin: 54px 50%;
+  transform: rotateY(0deg);
+  opacity: 0;
+  z-index: 0;
+  pointer-events: none;
+  backface-visibility: hidden;
+}
+
+.closed-book-cover::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 54px;
+  width: 16px;
+  background: linear-gradient(90deg, rgba(0,0,0,0.22), rgba(255,255,255,0.08), transparent);
+  opacity: 0.72;
+}
+
+.login-title {
+  position: relative;
+  z-index: 1;
+  margin: 4px auto 16px;
+  width: 100%;
+  transform: translateX(10px);
+}
+
+.login-letter-logo {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0;
+  width: 100%;
+  min-height: 72px;
+}
+
+.login-letter-logo img {
+  height: clamp(38px, 9vw, 58px);
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 5px 9px rgba(0,0,0,0.28));
+  margin-left: clamp(-13px, -2.5vw, -7px);
+  position: relative;
+}
+
+.login-letter-logo img:first-child {
+  margin-left: 0;
+}
+
+.login-letter-logo img:nth-child(2n) {
+  transform: translateY(4px) rotate(-4deg);
+}
+
+.login-letter-logo img:nth-child(3n) {
+  transform: translateY(-3px) rotate(3deg);
+}
+
+.login-letter-logo img:nth-child(4n) {
+  transform: translateY(2px) rotate(5deg);
+}
+
+.login-subtitle {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  color: rgba(247,239,230,0.74);
+  margin-bottom: 34px;
+  font-size: 0.98rem;
+  transform: translateX(10px);
+}
+
+.login-form {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 14px;
+  width: 100%;
+  transform: translateX(10px);
+}
+
+.auth-tabs {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 22px;
+  padding: 5px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f1dfc2, #e4cda9);
+  border: 1px solid rgba(255,240,225,0.36);
+  box-shadow: 0 8px 18px rgba(0,0,0,0.16);
+}
+
+.auth-tab {
+  border: 0;
+  border-radius: 999px;
+  padding: 9px 10px;
+  cursor: pointer;
+  background: transparent;
+  color: rgba(74,24,24,0.74);
+  font-family: 'Libertinus Sans', sans-serif;
+  font-size: 0.92rem;
+  transition: all 0.18s ease;
+}
+
+.auth-tab.active {
+  background: linear-gradient(135deg, #fbefdc, #f1dfc2);
+  color: #4a1818;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18), 0 6px 14px rgba(0,0,0,0.12);
+}
+
+.login-field {
+  display: grid;
+  gap: 6px;
+  color: rgba(247,239,230,0.72);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.login-field input {
+  width: 100%;
+  border: 1px solid rgba(255,240,225,0.26);
+  border-radius: 15px;
+  padding: 13px 15px;
+  background: rgba(255,248,240,0.12);
+  color: #fff8ef;
+  outline: none;
+  font-family: 'Libertinus Sans', sans-serif;
+  font-size: 1rem;
+  box-shadow: inset 0 1px 12px rgba(0,0,0,0.16);
+}
+
+.login-field input::placeholder {
+  color: rgba(255,248,240,0.42);
+}
+
+.login-field input:focus {
+  border-color: rgba(232,130,154,0.82);
+  background: rgba(255,248,240,0.16);
+}
+
+.login-open-btn {
+  margin-top: 12px;
+  border: 0;
+  border-radius: 999px;
+  padding: 14px 18px;
+  cursor: pointer;
+  color: #4a1818;
+  background: linear-gradient(135deg, #f1dfc2, #e4cda9);
+  font-family: 'Libertinus Sans', sans-serif;
+  font-size: 1rem;
+  box-shadow: 0 12px 26px rgba(0,0,0,0.22);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.login-open-btn:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #f1dfc2, #e4cda9);
+  box-shadow: 0 16px 30px rgba(0,0,0,0.28);
+}
+
+.login-error {
+  min-height: 20px;
+  color: #ffd7d7;
+  font-size: 0.88rem;
+  text-align: center;
+}
+
+.forgot-password-btn {
+  border: 0;
+  background: transparent;
+  color: rgba(247,239,230,0.72);
+  font-family: 'Libertinus Sans', sans-serif;
+  font-size: 0.9rem;
+  text-align: center;
+  cursor: pointer;
+  margin-top: -4px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.forgot-password-btn:hover {
+  color: #fff8ef;
+}
+
+.forgot-password-btn.hidden {
+  display: none;
+}
+
+.login-gate.opening .closed-book-cover {
+  animation: bookOpen 1.05s cubic-bezier(.2,.72,.18,1) forwards;
+}
+
+.login-gate.opening .closed-book-page {
+  animation: pageTurn 1.05s 0.18s cubic-bezier(.18,.7,.2,1) forwards;
+}
+
+@keyframes bookOpen {
+  0% {
+    transform: rotateY(0deg) translateX(0) scale(1);
+    opacity: 1;
+  }
+  58% {
+    transform: rotateY(-72deg) translateX(-22px) scale(0.99);
+    opacity: 1;
+  }
+  100% {
+    transform: rotateY(-112deg) translateX(-52px) scale(0.96);
+    opacity: 0;
+  }
+}
+
+@keyframes pageTurn {
+  0% {
+    transform: rotateY(0deg) translateX(0) scale(0.985);
+    opacity: 0;
+  }
+  14% {
+    opacity: 1;
+  }
+  52% {
+    transform: rotateY(-62deg) translateX(-18px) scale(0.99);
+    opacity: 1;
+  }
+  100% {
+    transform: rotateY(-136deg) translateX(-74px) scale(0.95);
+    opacity: 0;
+  }
 }
 
 /* ---- Main Layout ---- */
@@ -2462,6 +2766,53 @@ body {
   background: rgba(226,154,172,1);
 }
 
+.cloud-status {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(245,240,234,0.36);
+  border: 1px solid rgba(255,255,255,0.38);
+  color: rgba(105,78,72,0.42);
+  opacity: 0.58;
+  z-index: 120;
+  pointer-events: none;
+  backdrop-filter: blur(6px);
+  transition: opacity 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+
+.cloud-status svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.cloud-status.ready {
+  background: rgba(221,244,226,0.34);
+  color: rgba(66,102,74,0.48);
+}
+
+.cloud-status.local {
+  background: rgba(252,232,220,0.34);
+  color: rgba(138,77,54,0.48);
+}
+
+.cloud-status.uploaded {
+  opacity: 0.78;
+  background: rgba(221,244,226,0.5);
+  color: rgba(66,102,74,0.68);
+}
+
 .util-menu-wrap {
   position: relative;
 }
@@ -2568,7 +2919,50 @@ body {
 
 </style>
 </head>
-<body>
+<body class="login-locked">
+
+<div class="login-gate" id="loginGate" aria-modal="true" role="dialog">
+  <div class="closed-book-login">
+    <div class="closed-book-page" aria-hidden="true"></div>
+    <div class="closed-book-cover">
+      <h1 class="login-title" aria-label="Scrapbook">
+        <span class="login-letter-logo">
+          <img src="harfs.png" alt="s">
+          <img src="harfc.png" alt="c">
+          <img src="harfr.png" alt="r">
+          <img src="harfa.png" alt="a">
+          <img src="harfp.png" alt="p">
+          <img src="harfb.png" alt="b">
+          <img src="harfo.png" alt="o">
+          <img src="harfo2.png" alt="o">
+          <img src="harfk.png" alt="k">
+        </span>
+      </h1>
+      <p class="login-subtitle" id="loginSubtitle">Defter hesabına girmek için giriş yap.</p>
+      <div class="auth-tabs" role="tablist" aria-label="Authentication">
+        <button class="auth-tab active" id="signInTab" type="button" data-auth-mode="signin">Sign In</button>
+        <button class="auth-tab" id="signUpTab" type="button" data-auth-mode="signup">Sign Up</button>
+      </div>
+      <form class="login-form" id="loginForm">
+        <label class="login-field" id="loginNameField">
+          Ad Soyad
+          <input id="loginName" type="text" autocomplete="name" placeholder="Adın" required>
+        </label>
+        <label class="login-field">
+          E-posta
+          <input id="loginEmail" type="email" autocomplete="email" placeholder="mail@example.com" required>
+        </label>
+        <label class="login-field">
+          Defter Anahtarı
+          <input id="loginKey" type="password" autocomplete="current-password" placeholder="En az 6 karakter" minlength="6" required>
+        </label>
+        <p class="login-error" id="loginError"></p>
+        <button class="forgot-password-btn" id="forgotPasswordBtn" type="button">Şifremi unuttum</button>
+        <button class="login-open-btn" id="loginSubmitBtn" type="submit">Sign In</button>
+      </form>
+    </div>
+  </div>
+</div>
 
 <div class="app">
   <!-- Utility Buttons -->
@@ -2587,8 +2981,8 @@ body {
         <svg viewBox="0 0 24 24"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/></svg>
       </button>
       <div class="util-menu" id="shareMenu">
-        <button type="button" id="sharePageBtn">Sayfayi Paylas</button>
-        <button type="button" id="downloadPageBtn">Sayfayi Indir</button>
+        <button type="button" id="sharePageBtn">Sayfayı Paylaş</button>
+        <button type="button" id="downloadPageBtn">Sayfayı İndir</button>
       </div>
     </div>
     <div class="util-menu-wrap">
@@ -2601,30 +2995,33 @@ body {
           <div class="settings-grid" id="backgroundChoices">
             <button class="settings-swatch" type="button" data-bg="#4A1818" style="--swatch:#4A1818" title="Bordo"></button>
             <button class="settings-swatch" type="button" data-bg="#f4d8dc" style="--swatch:#f4d8dc" title="Soft Pembe"></button>
-            <button class="settings-swatch" type="button" data-bg="#dce8df" style="--swatch:#dce8df" title="Soft Yesil"></button>
+            <button class="settings-swatch" type="button" data-bg="#dce8df" style="--swatch:#dce8df" title="Soft Yeşil"></button>
             <button class="settings-swatch" type="button" data-bg="#dbe5f2" style="--swatch:#dbe5f2" title="Soft Mavi"></button>
             <button class="settings-swatch" type="button" data-bg="#efe4d6" style="--swatch:#efe4d6" title="Soft Krem"></button>
             <button class="settings-swatch" type="button" data-bg="url('background1.jpeg')" style="--swatch:url('background1.jpeg')" title="Background 1"></button>
             <button class="settings-swatch" type="button" data-bg="url('background2.jpeg')" style="--swatch:url('background2.jpeg')" title="Background 2"></button>
             <button class="settings-swatch" type="button" data-bg="url('background3.jpeg')" style="--swatch:url('background3.jpeg')" title="Background 3"></button>
             <button class="settings-swatch" type="button" data-bg="url('background4.jpeg')" style="--swatch:url('background4.jpeg')" title="Background 4"></button>
-            <button class="settings-swatch settings-upload-swatch" type="button" id="backgroundUploadBtn" title="Background Yukle">+</button>
+            <button class="settings-swatch settings-upload-swatch" type="button" id="backgroundUploadBtn" title="Arka plan yükle">+</button>
             <input type="file" id="backgroundUploadInput" accept="image/*" style="display:none">
           </div>
         </div>
         <div class="settings-section">
           <div class="settings-section-title">Sayfa Dokusu</div>
           <div class="settings-grid" id="textureChoices">
-            <button class="texture-btn" type="button" data-page="#faf8f4" data-texture="none">Duz</button>
-            <button class="texture-btn" type="button" data-page="#fbf6ed" data-texture="linear-gradient(rgba(120,90,60,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(120,90,60,0.025) 1px, transparent 1px)">Kagit</button>
-            <button class="texture-btn" type="button" data-page="#fbf8f0" data-texture="repeating-linear-gradient(0deg, transparent 0 24px, rgba(80,120,170,0.16) 25px)">Cizgili</button>
+            <button class="texture-btn" type="button" data-page="#faf8f4" data-texture="none">Düz</button>
+            <button class="texture-btn" type="button" data-page="#fbf6ed" data-texture="linear-gradient(rgba(120,90,60,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(120,90,60,0.025) 1px, transparent 1px)">Kağıt</button>
+            <button class="texture-btn" type="button" data-page="#fbf8f0" data-texture="repeating-linear-gradient(0deg, transparent 0 24px, rgba(80,120,170,0.16) 25px)">Çizgili</button>
             <button class="texture-btn" type="button" data-page="#fbf8f3" data-texture="radial-gradient(rgba(80,60,40,0.16) 0.7px, transparent 0.8px)">Noktali</button>
           </div>
         </div>
-        <button type="button" id="settingsClearBtn">Sayfayi Temizle</button>
+        <button type="button" id="settingsClearBtn">Sayfayı Temizle</button>
       </div>
     </div>
   </div>
+  <span class="cloud-status" id="cloudStatus" title="Cloud storage status" aria-label="Cloud storage status">
+    <svg viewBox="0 0 24 24"><path d="M17.5 19H7a4 4 0 1 1 .8-7.92A5.5 5.5 0 0 1 18.26 9.5H18.5a4.75 4.75 0 0 1-1 9.5Z"/></svg>
+  </span>
 
   <!-- Notebook Area -->
   <div class="notebook-area">
@@ -2671,9 +3068,9 @@ body {
             <img src="pol 1.png" alt="Polaroid">
             <span class="tool-label">Photo / Video</span>
           </div>
-          <div class="tool-item" id="toolText" title="Yazi">
-            <img src="yazı.png" alt="Yazi">
-            <span class="tool-label">Yazi</span>
+          <div class="tool-item" id="toolText" title="Yazı">
+            <img src="yazı.png" alt="Yazı">
+            <span class="tool-label">Yazı</span>
           </div>
           <div class="tool-item" id="toolCD" title="Audio">
             <img src="fg 1.png" alt="CD">
@@ -3064,6 +3461,14 @@ body {
   // ---- State ----
   const STORAGE_KEY = 'scrapbook-v3';
   const APPEARANCE_KEY = 'scrapbook-appearance-v1';
+  const USER_PROFILE_KEY = 'scrapbook-user-profile-v1';
+  const LOCAL_USERS_KEY = 'scrapbook-local-users-v1';
+  const SUPABASE_URL = 'https://kfuzpxwchfzriacwaogd.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmdXpweHdjaGZ6cmlhY3dhb2dkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwMDI1OTYsImV4cCI6MjA5MzU3ODU5Nn0.lvk1Gud1cgPUiw5HngYveVVrYg_4CrMtHM-SsPJGpN0';
+  const SUPABASE_MEDIA_BUCKET = 'scrapbook-media';
+  const SUPABASE_CLIENT_ID_KEY = 'scrapbook-cloud-client-id';
+  const supabase = window.supabase?.createClient?.(SUPABASE_URL, SUPABASE_ANON_KEY) || null;
+  let supabaseSessionPromise = null;
   let zCounter = 20;
   let currentSpread = 0;
   let totalSpreads = 1;
@@ -3097,6 +3502,7 @@ body {
   init();
 
   function init() {
+    bindLoginGate();
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
     bindToolClicks();
@@ -3107,10 +3513,413 @@ body {
     bindGlobalClicks();
     bindAdjustPopup();
     bindAudioEditPopup();
+    warmSupabase();
     loadAppearance();
     loadLayout();
     captureHistoryState(true);
     bindHistoryCapture();
+  }
+
+  function isValidEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || '').trim());
+  }
+
+  function loadLocalUsers() {
+    return JSON.parse(localStorage.getItem(LOCAL_USERS_KEY) || '{}');
+  }
+
+  function saveLocalUsers(users) {
+    localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(users));
+  }
+
+  function createLocalUser(name, email, password) {
+    const users = loadLocalUsers();
+    if (users[email]) throw new Error('local_user_already_exists');
+    users[email] = {
+      name,
+      email,
+      password,
+      createdAt: new Date().toISOString()
+    };
+    saveLocalUsers(users);
+    return users[email];
+  }
+
+  function signInLocalUser(email, password) {
+    const user = loadLocalUsers()[email];
+    if (!user || user.password !== password) throw new Error('local_invalid_credentials');
+    user.lastLoginAt = new Date().toISOString();
+    const users = loadLocalUsers();
+    users[email] = user;
+    saveLocalUsers(users);
+    return user;
+  }
+
+  function openScrapbookFromGate() {
+    const gate = $('#loginGate');
+    document.body.classList.remove('login-locked');
+    if (!gate) return;
+    gate.classList.add('opening');
+    window.setTimeout(() => gate.classList.add('hidden'), 1280);
+  }
+
+  async function signUpMember(name, email, password) {
+    if (supabase) {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: name } }
+      });
+      if (error) throw error;
+      if (data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+        throw new Error('user_already_exists');
+      }
+      return data;
+    }
+    return null;
+  }
+
+  async function signInMember(email, password) {
+    if (supabase) {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      return data;
+    }
+    return null;
+  }
+
+  async function sendPasswordResetEmail(email) {
+    if (!supabase) throw new Error('Supabase bağlantısı kurulamadı.');
+    const redirectTo = window.location.origin + window.location.pathname;
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+    if (error) throw error;
+  }
+
+  function getFriendlyAuthError(error, mode) {
+    const message = String(error?.message || '').toLowerCase();
+    const status = error?.status;
+    const code = String(error?.code || '').toLowerCase();
+
+    if (message.includes('local_user_already_exists')) {
+      return 'Bu e-posta bu cihazda zaten kayıtlı. Sign In ile giriş yap veya başka bir e-posta dene.';
+    }
+    if (message.includes('local_invalid_credentials')) {
+      return 'Bu cihazdaki hesap için e-posta veya defter anahtarı hatalı.';
+    }
+    if (message.includes('password') && (message.includes('6') || message.includes('six') || message.includes('short'))) {
+      return 'Şifre kabul edilmedi. En az 6 karakterli daha güçlü bir defter anahtarı dene.';
+    }
+    if (message.includes('already') || message.includes('registered') || code.includes('user_already_exists')) {
+      return 'Bu e-posta ile hesap zaten var. Sign In ile giriş yap veya başka bir e-posta dene.';
+    }
+    if (message.includes('invalid email') || message.includes('email address') || message.includes('email not')) {
+      return 'E-posta kabul edilmedi. Yazımı kontrol et veya başka bir e-posta dene.';
+    }
+    if (status === 429 || message.includes('rate limit')) {
+      return 'Çok fazla deneme yapıldı. Biraz bekleyip tekrar dene.';
+    }
+    if (mode === 'signin' && (message.includes('invalid login') || message.includes('invalid credentials'))) {
+      return 'E-posta veya defter anahtarı hatalı. Bilgileri kontrol et.';
+    }
+    if (message.includes('network') || message.includes('failed to fetch')) {
+      return 'Bağlantı kurulamadı. İnternet bağlantını kontrol edip tekrar dene.';
+    }
+    if (mode === 'reset') {
+      return 'Şifre sıfırlama maili gönderilemedi. E-postayı kontrol et veya biraz sonra tekrar dene.';
+    }
+    return mode === 'signup'
+      ? 'Hesap oluşturulamadı. Şifreyi güçlendir veya başka bir e-posta dene.'
+      : 'Giriş başarısız. Bilgileri kontrol et veya önce Sign Up ile hesap oluştur.';
+  }
+
+  function bindLoginGate() {
+    const gate = $('#loginGate');
+    const form = $('#loginForm');
+    if (!gate || !form) return;
+
+    const savedProfile = JSON.parse(localStorage.getItem(USER_PROFILE_KEY) || 'null');
+    if (savedProfile?.email && isValidEmail(savedProfile.email)) {
+      gate.classList.add('hidden');
+      document.body.classList.remove('login-locked');
+      return;
+    }
+
+    const errorEl = $('#loginError');
+    const subtitle = $('#loginSubtitle');
+    const submitBtn = $('#loginSubmitBtn');
+    const nameField = $('#loginNameField');
+    const forgotBtn = $('#forgotPasswordBtn');
+    const tabs = [...$$('[data-auth-mode]')];
+    let authMode = 'signin';
+
+    function setAuthMode(mode) {
+      authMode = mode;
+      tabs.forEach(tab => tab.classList.toggle('active', tab.dataset.authMode === mode));
+      nameField.style.display = mode === 'signup' ? 'grid' : 'none';
+      forgotBtn.classList.toggle('hidden', mode !== 'signin');
+      $('#loginName').required = mode === 'signup';
+      submitBtn.textContent = mode === 'signup' ? 'Create Account' : 'Sign In';
+      subtitle.textContent = mode === 'signup'
+        ? 'Yeni defter hesabını oluştur.'
+        : 'Defter hesabına girmek için giriş yap.';
+      errorEl.textContent = '';
+    }
+
+    tabs.forEach(tab => tab.addEventListener('click', () => setAuthMode(tab.dataset.authMode)));
+    setAuthMode('signin');
+
+    forgotBtn.addEventListener('click', async () => {
+      const email = $('#loginEmail').value.trim().toLowerCase();
+      if (!isValidEmail(email)) {
+        errorEl.textContent = 'Şifre sıfırlama maili için önce geçerli e-postanı yaz.';
+        return;
+      }
+      forgotBtn.disabled = true;
+      errorEl.textContent = 'Şifre sıfırlama maili gönderiliyor...';
+      try {
+        await sendPasswordResetEmail(email);
+        errorEl.textContent = 'Şifre sıfırlama maili gönderildi. Gelen kutunu kontrol et.';
+      } catch (err) {
+        errorEl.textContent = getFriendlyAuthError(err, 'reset');
+      } finally {
+        forgotBtn.disabled = false;
+      }
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = $('#loginName').value.trim();
+      const email = $('#loginEmail').value.trim().toLowerCase();
+      const key = $('#loginKey').value.trim();
+
+      if (authMode === 'signup' && name.length < 2) {
+        errorEl.textContent = 'Lütfen adını doğru gir.';
+        return;
+      }
+      if (!isValidEmail(email)) {
+        errorEl.textContent = 'Geçerli bir e-posta gir.';
+        return;
+      }
+      if (key.length < 6) {
+        errorEl.textContent = 'Defter anahtarı en az 6 karakter olmalı.';
+        return;
+      }
+
+      submitBtn.disabled = true;
+      errorEl.textContent = authMode === 'signup' ? 'Hesap oluşturuluyor...' : 'Giriş yapılıyor...';
+      try {
+        if (authMode === 'signup') {
+          try {
+            await signUpMember(name, email, key);
+          } catch (cloudErr) {
+            console.warn('Supabase sign up failed; creating local account.', cloudErr);
+          }
+          createLocalUser(name, email, key);
+          localStorage.setItem(USER_PROFILE_KEY, JSON.stringify({
+            name,
+            email,
+            createdAt: new Date().toISOString()
+          }));
+        } else {
+          try {
+            await signInMember(email, key);
+          } catch (cloudErr) {
+            signInLocalUser(email, key);
+          }
+          localStorage.setItem(USER_PROFILE_KEY, JSON.stringify({
+            name: name || email.split('@')[0],
+            email,
+            lastLoginAt: new Date().toISOString()
+          }));
+        }
+        errorEl.textContent = '';
+        openScrapbookFromGate();
+        warmSupabase();
+      } catch (err) {
+        errorEl.textContent = getFriendlyAuthError(err, authMode);
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+  }
+
+  function setCloudStatus(text, mode = '') {
+    const el = $('#cloudStatus');
+    if (!el) return;
+    el.title = text;
+    el.setAttribute('aria-label', text);
+    el.classList.toggle('ready', mode === 'ready');
+    el.classList.toggle('local', mode === 'local');
+    el.classList.toggle('uploaded', mode === 'uploaded');
+  }
+
+  async function warmSupabase() {
+    if (!supabase) {
+      setCloudStatus('Local', 'local');
+      return;
+    }
+    setCloudStatus('Cloud...');
+    const session = await getSupabaseSession();
+    setCloudStatus(session?.user ? 'Cloud ready' : 'Cloud test', 'ready');
+  }
+
+  async function getSupabaseSession() {
+    if (!supabase) return null;
+    if (!supabaseSessionPromise) {
+      supabaseSessionPromise = (async () => {
+        const { data: existing } = await supabase.auth.getSession();
+        if (existing?.session) return existing.session;
+        const { data, error } = await supabase.auth.signInAnonymously();
+        if (error) {
+          console.warn('Supabase anonymous auth failed; using local file fallback.', error);
+          return null;
+        }
+        return data.session;
+      })();
+    }
+    return supabaseSessionPromise;
+  }
+
+  function mediaKindFromFile(file) {
+    if (file.type.startsWith('image/')) return 'image';
+    if (file.type.startsWith('video/')) return 'video';
+    if (file.type.startsWith('audio/')) return 'audio';
+    return 'other';
+  }
+
+  function getCloudClientId() {
+    let id = localStorage.getItem(SUPABASE_CLIENT_ID_KEY);
+    if (!id) {
+      id = crypto.randomUUID();
+      localStorage.setItem(SUPABASE_CLIENT_ID_KEY, id);
+    }
+    return id;
+  }
+
+  async function uploadMediaFile(file, kind = mediaKindFromFile(file)) {
+    const session = await getSupabaseSession();
+    if (!supabase) return null;
+
+    const safeName = (file.name || `${kind}-${Date.now()}.webm`).replace(/[^a-z0-9._-]+/gi, '-').toLowerCase();
+    const ext = safeName.includes('.') ? safeName.split('.').pop() : 'bin';
+    const folder = session?.user ? session.user.id : `anon/${getCloudClientId()}`;
+    const path = `${folder}/${Date.now()}-${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabase.storage
+      .from(SUPABASE_MEDIA_BUCKET)
+      .upload(path, file, { contentType: file.type || 'application/octet-stream', upsert: false });
+    if (error) {
+      console.warn('Supabase upload failed; using local file fallback.', error);
+      setCloudStatus('Local', 'local');
+      return null;
+    }
+
+    if (session?.user) {
+      const { error: assetError } = await supabase.from('scrapbook_assets').insert({
+        storage_path: path,
+        media_kind: kind,
+        mime_type: file.type || null,
+        size_bytes: file.size || null
+      });
+      if (assetError) console.warn('Supabase asset row insert failed.', assetError);
+    }
+
+    const { data } = await supabase.storage.from(SUPABASE_MEDIA_BUCKET).createSignedUrl(path, 60 * 60 * 24 * 7);
+    setCloudStatus('Uploaded', 'uploaded');
+    return data?.signedUrl || null;
+  }
+
+  function readFileAsDataURL(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (ev) => resolve(ev.target.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function blobToDataURL(blob) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (ev) => resolve(ev.target.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  async function imageSrcToDataURL(src) {
+    if (!src || src.startsWith('data:')) return src;
+    try {
+      const absoluteSrc = new URL(src, window.location.href).href;
+      const response = await fetch(absoluteSrc, { cache: 'force-cache' });
+      if (!response.ok) throw new Error(`image_fetch_${response.status}`);
+      const blob = await response.blob();
+      if (!blob.type.startsWith('image/')) return src;
+      return await blobToDataURL(blob);
+    } catch (err) {
+      console.warn('Could not inline image for export:', src, err);
+      return src;
+    }
+  }
+
+  async function cssBackgroundForExport(backgroundValue) {
+    const match = String(backgroundValue || '').match(/url\((['"]?)(.*?)\1\)/);
+    if (!match) return backgroundValue;
+    const inlined = await imageSrcToDataURL(match[2]);
+    return `url('${inlined}')`;
+  }
+
+  function loadCanvasImage(src) {
+    return new Promise(async (resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = await imageSrcToDataURL(src);
+    });
+  }
+
+  function roundRectPath(ctx, x, y, w, h, r) {
+    const radius = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + w - radius, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + radius);
+    ctx.lineTo(x + w, y + h - radius);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
+    ctx.lineTo(x + radius, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+  }
+
+  function showPreparedDownload(url, filename) {
+    let tray = $('#preparedDownloadTray');
+    if (!tray) {
+      tray = document.createElement('div');
+      tray.id = 'preparedDownloadTray';
+      tray.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:3000;background:rgba(250,244,234,0.96);color:#4a1818;border:1px solid rgba(74,24,24,0.12);border-radius:999px;padding:8px 12px;box-shadow:0 10px 28px rgba(0,0,0,0.18);font-family:Libertinus Sans,sans-serif;';
+      document.body.appendChild(tray);
+    }
+    tray.innerHTML = '';
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.textContent = 'JPEG hazır - indir';
+    link.style.cssText = 'color:#4a1818;text-decoration:none;font-weight:700;';
+    tray.appendChild(link);
+    window.setTimeout(() => {
+      if (tray?.isConnected) tray.remove();
+    }, 12000);
+    return link;
+  }
+
+  async function fileToUsableUrl(file, kind) {
+    if (kind === 'image') {
+      const localSrc = await readFileAsDataURL(file);
+      uploadMediaFile(file, kind).catch(err => console.warn('Background image upload failed:', err));
+      return localSrc;
+    }
+    return await uploadMediaFile(file, kind) || await readFileAsDataURL(file);
   }
 
   // ---- Canvas resize ----
@@ -3456,34 +4265,31 @@ body {
 
     // ---- Photo upload ----
     // Direct photo upload (no frame)
-    $('#photoInput').addEventListener('change', (e) => {
-      [...e.target.files].forEach(file => {
-        const reader = new FileReader();
-        reader.onload = (ev) => createDirectImageItem(ev.target.result);
-        reader.readAsDataURL(file);
-      });
+    $('#photoInput').addEventListener('change', async (e) => {
+      for (const file of [...e.target.files]) {
+        const src = await fileToUsableUrl(file, 'image');
+        createDirectImageItem(src);
+      }
       e.target.value = '';
       closePopup('mediaPopup');
     });
 
     // Direct video upload
-    $('#videoInput').addEventListener('change', (e) => {
+    $('#videoInput').addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (ev) => createDirectVideoItem(ev.target.result);
-      reader.readAsDataURL(file);
+      const src = await fileToUsableUrl(file, 'video');
+      createDirectVideoItem(src);
       e.target.value = '';
       closePopup('mediaPopup');
     });
 
     // ---- Audio upload ----
-    $('#audioInput').addEventListener('change', (e) => {
+    $('#audioInput').addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (ev) => createAudioPlayerItem('simple', { audioSrc: ev.target.result });
-      reader.readAsDataURL(file);
+      const src = await fileToUsableUrl(file, 'audio');
+      createAudioPlayerItem('simple', { audioSrc: src });
       e.target.value = '';
       closePopup('audioPopup');
     });
@@ -3648,14 +4454,11 @@ body {
         audioChunks.push(e.data);
       };
 
-      mediaRecorder.onstop = () => {
+      mediaRecorder.onstop = async () => {
         const blob = new Blob(audioChunks, { type: 'audio/webm' });
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-          createAudioPlayerItem('simple', { audioSrc: ev.target.result });
-          closePopup('audioPopup');
-        };
-        reader.readAsDataURL(blob);
+        const src = await fileToUsableUrl(blob, 'audio');
+        createAudioPlayerItem('simple', { audioSrc: src });
+        closePopup('audioPopup');
         stream.getTracks().forEach(t => t.stop());
       };
 
@@ -4065,48 +4868,44 @@ body {
     });
 
     // File upload → add image, then open adjust popup so user can position
-    fileInput.addEventListener('change', (ev) => {
+    fileInput.addEventListener('change', async (ev) => {
       const file = ev.target.files[0];
       if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (re) => {
-        el.dataset.mediaSrc = re.target.result;
-        el.dataset.renderedSrc = '';
-        clipZone.innerHTML = '';
-        const img = document.createElement('img');
-        img.src = re.target.result;
-        img.className = 'frame-media';
-        img.draggable = false;
-        clipZone.appendChild(img);
+      const src = await fileToUsableUrl(file, 'image');
+      el.dataset.mediaSrc = src;
+      el.dataset.renderedSrc = '';
+      clipZone.innerHTML = '';
+      const img = document.createElement('img');
+      img.src = src;
+      img.className = 'frame-media';
+      img.draggable = false;
+      clipZone.appendChild(img);
 
-        // Auto-fit: cover the clip zone
-        img.onload = () => {
-          const cw = clipZone.clientWidth, ch = clipZone.clientHeight;
-          const scaleW = cw / img.naturalWidth, scaleH = ch / img.naturalHeight;
-          const fitScale = Math.max(scaleW, scaleH);
-          const displayW = img.naturalWidth * fitScale;
-          const displayH = img.naturalHeight * fitScale;
-          img.style.width = displayW + 'px';
-          img.style.height = displayH + 'px';
-          img.style.left = ((cw - displayW) / 2) + 'px';
-          img.style.top = ((ch - displayH) / 2) + 'px';
-          img.style.transform = 'rotate(0deg)';
-          img.style.transformOrigin = '50% 50%';
-          el.dataset.imgZoom = Math.round(fitScale * 100);
-          el.dataset.imgOffX = Math.round((cw - displayW) / 2);
-          el.dataset.imgOffY = Math.round((ch - displayH) / 2);
-          el.dataset.imgWidth = Math.round(displayW);
-          el.dataset.imgRot = '0';
-          el.dataset.mediaOrigSrc = re.target.result;
-          el.dataset.mediaRemoveBg = '0';
-          el.dataset.mediaRemoveBgTol = '30';
-          // Open adjust popup so the user can fine-tune
-          openAdjustPopup(el, 'frame');
-        };
-
-        setupFrameMediaDrag(el);
+      // Auto-fit: cover the clip zone
+      img.onload = () => {
+        const cw = clipZone.clientWidth, ch = clipZone.clientHeight;
+        const scaleW = cw / img.naturalWidth, scaleH = ch / img.naturalHeight;
+        const fitScale = Math.max(scaleW, scaleH);
+        const displayW = img.naturalWidth * fitScale;
+        const displayH = img.naturalHeight * fitScale;
+        img.style.width = displayW + 'px';
+        img.style.height = displayH + 'px';
+        img.style.left = ((cw - displayW) / 2) + 'px';
+        img.style.top = ((ch - displayH) / 2) + 'px';
+        img.style.transform = 'rotate(0deg)';
+        img.style.transformOrigin = '50% 50%';
+        el.dataset.imgZoom = Math.round(fitScale * 100);
+        el.dataset.imgOffX = Math.round((cw - displayW) / 2);
+        el.dataset.imgOffY = Math.round((ch - displayH) / 2);
+        el.dataset.imgWidth = Math.round(displayW);
+        el.dataset.imgRot = '0';
+        el.dataset.mediaOrigSrc = src;
+        el.dataset.mediaRemoveBg = '0';
+        el.dataset.mediaRemoveBgTol = '30';
+        // Open adjust popup so the user can fine-tune
+        openAdjustPopup(el, 'frame');
       };
-      reader.readAsDataURL(file);
+      setupFrameMediaDrag(el);
       ev.target.value = '';
     });
 
@@ -4531,24 +5330,21 @@ body {
       emptyZone.addEventListener('click', (e) => { e.stopPropagation(); fileInput.click(); });
     }
 
-    fileInput.addEventListener('change', (ev) => {
+    fileInput.addEventListener('change', async (ev) => {
       const file = ev.target.files[0];
       if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (re) => {
-        el.dataset.src = re.target.result;
-        const body = el.querySelector('.polaroid-body');
-        const empty = body.querySelector('.polaroid-empty');
-        if (empty) empty.remove();
-        const existing = body.querySelector('img');
-        if (existing) existing.remove();
-        const img = document.createElement('img');
-        img.src = re.target.result;
-        img.style.width = w + 'px';
-        img.draggable = false;
-        body.insertBefore(img, body.firstChild);
-      };
-      reader.readAsDataURL(file);
+      const src = await fileToUsableUrl(file, 'image');
+      el.dataset.src = src;
+      const body = el.querySelector('.polaroid-body');
+      const empty = body.querySelector('.polaroid-empty');
+      if (empty) empty.remove();
+      const existing = body.querySelector('img');
+      if (existing) existing.remove();
+      const img = document.createElement('img');
+      img.src = src;
+      img.style.width = w + 'px';
+      img.draggable = false;
+      body.insertBefore(img, body.firstChild);
       ev.target.value = '';
     });
 
@@ -5383,17 +6179,17 @@ body {
           const finalLeft = (relX / 100) * clip.clientWidth;
           const finalTop = (relY / 100) * clip.clientHeight;
           const finalWidth = (relW / 100) * clip.clientWidth;
-          const renderedSrc = renderFrameCropResult(cropImg, clip, mx, my, mw, mh);
 
-          media.src = renderedSrc;
-          media.style.cssText = 'left:0;top:0;width:100%;height:100%;transform:none;transform-origin:50% 50%;';
+          media.src = finalSrc;
+          media.style.cssText = `left:${Math.round(finalLeft)}px;top:${Math.round(finalTop)}px;width:${Math.round(finalWidth)}px;height:auto;transform:rotate(${cropRotation}deg);transform-origin:50% 50%;`;
 
           cropTarget.dataset.imgOffX = String(Math.round(finalLeft));
           cropTarget.dataset.imgOffY = String(Math.round(finalTop));
           cropTarget.dataset.imgWidth = String(Math.round(finalWidth));
           cropTarget.dataset.imgZoom = String(Math.round((cropScale || 1) * 100));
           cropTarget.dataset.imgRot = cropRotation.toFixed(1);
-          cropTarget.dataset.renderedSrc = renderedSrc;
+          cropTarget.dataset.renderedSrc = '';
+          setupFrameMediaDrag(cropTarget);
         }
 
         cropTarget.dataset.mediaOrigSrc = cropOriginalSrc;
@@ -5634,28 +6430,24 @@ body {
     const changeInput = $('#cropChangeInput');
     if (changeBtn && changeInput) {
       changeBtn.addEventListener('click', () => changeInput.click());
-      changeInput.addEventListener('change', (ev) => {
+      changeInput.addEventListener('change', async (ev) => {
         const file = ev.target.files[0];
         if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (re) => {
-          const newSrc = re.target.result;
-          cropOriginalSrc = newSrc;
-          cropProcessedSrc = newSrc;
-          cropRotation = 0;
-          if (rotInput) rotInput.value = 0;
-          if (rotVal) rotVal.textContent = '0°';
-          const cropImg = $('#cropImage');
-          cropImg.src = newSrc;
-          cropImg.onload = () => {
-            const frameMask = $('#cropFrameMask');
-            const mw = frameMask.clientWidth, mh = frameMask.clientHeight;
-            const scaleW = mw / cropImg.naturalWidth, scaleH = mh / cropImg.naturalHeight;
-            const s = Math.max(scaleW, scaleH);
-            recenterAt(mw, mh, s);
-          };
+        const newSrc = await fileToUsableUrl(file, 'image');
+        cropOriginalSrc = newSrc;
+        cropProcessedSrc = newSrc;
+        cropRotation = 0;
+        if (rotInput) rotInput.value = 0;
+        if (rotVal) rotVal.textContent = '0°';
+        const cropImg = $('#cropImage');
+        cropImg.src = newSrc;
+        cropImg.onload = () => {
+          const frameMask = $('#cropFrameMask');
+          const mw = frameMask.clientWidth, mh = frameMask.clientHeight;
+          const scaleW = mw / cropImg.naturalWidth, scaleH = mh / cropImg.naturalHeight;
+          const s = Math.max(scaleW, scaleH);
+          recenterAt(mw, mh, s);
         };
-        reader.readAsDataURL(file);
         ev.target.value = '';
       });
     }
@@ -5695,38 +6487,32 @@ body {
     $('#audioEditClose').addEventListener('click', () => closePopup('audioEditPopup'));
 
     // Cover photo
-    $('#aeCoverInput').addEventListener('change', (ev) => {
+    $('#aeCoverInput').addEventListener('change', async (ev) => {
       const file = ev.target.files[0];
       if (!file || !audioEditTarget) return;
-      const reader = new FileReader();
-      reader.onload = (re) => {
-        audioEditTarget.dataset.coverSrc = re.target.result;
-        const zone = audioEditTarget.querySelector('.ap-cover-zone');
-        zone.classList.add('has-cover');
-        zone.innerHTML = `<img src="${re.target.result}" class="ap-cover-img" draggable="false">`;
-        $('#aeCoverPreview').innerHTML = `<img src="${re.target.result}">`;
+      const src = await fileToUsableUrl(file, 'image');
+      audioEditTarget.dataset.coverSrc = src;
+      const zone = audioEditTarget.querySelector('.ap-cover-zone');
+      zone.classList.add('has-cover');
+      zone.innerHTML = `<img src="${src}" class="ap-cover-img" draggable="false">`;
+      $('#aeCoverPreview').innerHTML = `<img src="${src}">`;
 
-        // Open cover adjust popup
-        closePopup('audioEditPopup');
-        openCoverAdjustPopup(audioEditTarget);
-      };
-      reader.readAsDataURL(file);
+      // Open cover adjust popup
+      closePopup('audioEditPopup');
+      openCoverAdjustPopup(audioEditTarget);
       ev.target.value = '';
     });
 
     // Upload audio
-    $('#aeAudioInput').addEventListener('change', (ev) => {
+    $('#aeAudioInput').addEventListener('change', async (ev) => {
       const file = ev.target.files[0];
       if (!file || !audioEditTarget) return;
-      const reader = new FileReader();
-      reader.onload = (re) => {
-        audioEditTarget.dataset.audioSrc = re.target.result;
-        const audio = audioEditTarget.querySelector('.ap-audio');
-        audio.src = re.target.result;
-        $('#aeAudioStatus').textContent = 'Audio loaded';
-        $('#aeAudioStatus').className = 'ae-status has-audio';
-      };
-      reader.readAsDataURL(file);
+      const src = await fileToUsableUrl(file, 'audio');
+      audioEditTarget.dataset.audioSrc = src;
+      const audio = audioEditTarget.querySelector('.ap-audio');
+      audio.src = src;
+      $('#aeAudioStatus').textContent = 'Audio loaded';
+      $('#aeAudioStatus').className = 'ae-status has-audio';
       ev.target.value = '';
     });
 
@@ -5750,18 +6536,15 @@ body {
         aeRecorder = new MediaRecorder(stream);
         aeChunks = [];
         aeRecorder.ondataavailable = (e) => aeChunks.push(e.data);
-        aeRecorder.onstop = () => {
+        aeRecorder.onstop = async () => {
           const blob = new Blob(aeChunks, { type: 'audio/webm' });
-          const reader = new FileReader();
-          reader.onload = (re) => {
-            if (!audioEditTarget) return;
-            audioEditTarget.dataset.audioSrc = re.target.result;
-            const audio = audioEditTarget.querySelector('.ap-audio');
-            audio.src = re.target.result;
-            $('#aeAudioStatus').textContent = 'Audio recorded';
-            $('#aeAudioStatus').className = 'ae-status has-audio';
-          };
-          reader.readAsDataURL(blob);
+          const src = await fileToUsableUrl(blob, 'audio');
+          if (!audioEditTarget) return;
+          audioEditTarget.dataset.audioSrc = src;
+          const audio = audioEditTarget.querySelector('.ap-audio');
+          audio.src = src;
+          $('#aeAudioStatus').textContent = 'Audio recorded';
+          $('#aeAudioStatus').className = 'ae-status has-audio';
           stream.getTracks().forEach(t => t.stop());
         };
         aeRecorder.start();
@@ -6115,7 +6898,7 @@ body {
       }
 
       if (el.dataset.type === 'audioplayer') {
-        obj.frameSrc = el.dataset.frameSrc;
+        obj.audioType = el.dataset.audioType || 'simple';
         obj.coverSrc = el.dataset.coverSrc || '';
         obj.audioSrc = el.dataset.audioSrc || '';
       }
@@ -6314,44 +7097,217 @@ body {
     applyAppearance(appearance);
   }
 
-  function downloadCurrentPage() {
+  async function downloadCurrentPage() {
     persistAll();
     const rect = notebook.getBoundingClientRect();
-    const clone = notebook.cloneNode(true);
-    clone.querySelectorAll('img').forEach(img => {
-      const raw = img.getAttribute('src');
-      if (raw && !raw.startsWith('data:')) img.setAttribute('src', new URL(raw, window.location.href).href);
-    });
+    const width = Math.round(rect.width);
+    const height = Math.round(rect.height);
 
-    const clonedCanvas = clone.querySelector('#drawingCanvas');
-    if (clonedCanvas) {
-      const drawingImg = document.createElement('img');
-      drawingImg.src = drawingCanvas.toDataURL();
-      drawingImg.className = clonedCanvas.className;
-      drawingImg.style.cssText = clonedCanvas.getAttribute('style') || '';
-      clonedCanvas.replaceWith(drawingImg);
+    const scale = Math.min(2, window.devicePixelRatio || 1);
+    const exportCanvas = document.createElement('canvas');
+    exportCanvas.width = width * scale;
+    exportCanvas.height = height * scale;
+    const ctx = exportCanvas.getContext('2d');
+    ctx.scale(scale, scale);
+
+    const pageColor = getComputedStyle(document.documentElement).getPropertyValue('--page').trim() || '#faf8f4';
+    const drawWrappedText = (text, x, y, maxWidth, lineHeight, font, color, align = 'left') => {
+      const words = String(text || '').split(/\s+/);
+      const lines = [];
+      let line = '';
+      words.forEach(word => {
+        const test = line ? `${line} ${word}` : word;
+        if (ctx.measureText(test).width > maxWidth && line) {
+          lines.push(line);
+          line = word;
+        } else {
+          line = test;
+        }
+      });
+      if (line) lines.push(line);
+      ctx.save();
+      ctx.font = font;
+      ctx.fillStyle = color;
+      ctx.textAlign = align;
+      ctx.textBaseline = 'top';
+      const tx = align === 'center' ? x + maxWidth / 2 : align === 'right' ? x + maxWidth : x;
+      lines.forEach((ln, i) => ctx.fillText(ln, tx, y + i * lineHeight, maxWidth));
+      ctx.restore();
+    };
+
+    const drawImg = async (src, x, y, w, h) => {
+      if (!src || !w || !h) return;
+      try {
+        const img = await loadCanvasImage(src);
+        ctx.drawImage(img, x, y, w, h);
+      } catch (err) {
+        console.warn('Export image skipped:', src, err);
+      }
+    };
+
+    // Notebook shell
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, width, height);
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,0.28)';
+    ctx.shadowBlur = 22;
+    ctx.shadowOffsetY = 8;
+    roundRectPath(ctx, 0, 0, width, height, 12);
+    ctx.fillStyle = '#e8e2d8';
+    ctx.fill();
+    ctx.restore();
+
+    const inset = 8;
+    const pageW = (width - inset * 2 - 2) / 2;
+    const pageH = height - inset * 2;
+    ctx.fillStyle = pageColor;
+    roundRectPath(ctx, inset, inset, pageW, pageH, 8);
+    ctx.fill();
+    roundRectPath(ctx, inset + pageW + 2, inset, pageW, pageH, 8);
+    ctx.fill();
+
+    if (appearance.texture && appearance.texture !== 'none') {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(80,60,35,0.07)';
+      ctx.lineWidth = 1;
+      if (appearance.texture.includes('radial-gradient')) {
+        ctx.fillStyle = 'rgba(80,60,35,0.08)';
+        for (let y = inset + 8; y < height - inset; y += 26) {
+          for (let x = inset + 8; x < width - inset; x += 26) {
+            ctx.beginPath();
+            ctx.arc(x, y, 1.2, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      } else {
+        for (let x = inset + 24; x < width - inset; x += 26) {
+          ctx.beginPath();
+          ctx.moveTo(x, inset);
+          ctx.lineTo(x, height - inset);
+          ctx.stroke();
+        }
+      }
+      ctx.restore();
     }
 
-    const styleText = [...document.querySelectorAll('style')].map(style => style.textContent).join('\n');
-    const html = `
-      <div xmlns="http://www.w3.org/1999/xhtml">
-        <style>${styleText}</style>
-        <div style="width:${rect.width}px;height:${rect.height}px;background:${appearance.background};display:flex;align-items:center;justify-content:center;">
-          ${clone.outerHTML}
-        </div>
-      </div>`;
-    const svg = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="${Math.round(rect.width)}" height="${Math.round(rect.height)}" viewBox="0 0 ${Math.round(rect.width)} ${Math.round(rect.height)}">
-        <foreignObject width="100%" height="100%">${html}</foreignObject>
-      </svg>`;
-    const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+    const spineX = inset + pageW;
+    const spineGrad = ctx.createLinearGradient(spineX - 6, 0, spineX + 8, 0);
+    spineGrad.addColorStop(0, 'rgba(0,0,0,0)');
+    spineGrad.addColorStop(0.48, 'rgba(0,0,0,0.12)');
+    spineGrad.addColorStop(1, 'rgba(255,255,255,0.25)');
+    ctx.fillStyle = spineGrad;
+    ctx.fillRect(spineX - 6, inset, 14, pageH);
+
+    if (drawingCanvas && drawingCanvas.width && drawingCanvas.height) {
+      ctx.drawImage(drawingCanvas, inset, inset, width - inset * 2, height - inset * 2);
+    }
+
+    const drawFrameItem = async (el) => {
+      const body = el.querySelector('.frame-body');
+      const clip = el.querySelector('.frame-clip');
+      const media = el.querySelector('.frame-media');
+      const bg = el.querySelector('.frame-bg');
+      if (!body || !bg) return;
+      if (clip && media) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(clip.offsetLeft, clip.offsetTop, clip.clientWidth, clip.clientHeight);
+        ctx.clip();
+        try {
+          const rot = parseFloat(el.dataset.imgRot) || 0;
+          const mx = parseFloat(media.style.left) || 0;
+          const my = parseFloat(media.style.top) || 0;
+          const mw = parseFloat(media.style.width) || media.clientWidth;
+          const img = await loadCanvasImage(media.getAttribute('src') || el.dataset.mediaSrc);
+          const mh = mw * (img.naturalHeight / img.naturalWidth);
+          ctx.save();
+          ctx.translate(mx + mw / 2, my + mh / 2);
+          ctx.rotate(rot * Math.PI / 180);
+          ctx.drawImage(img, -mw / 2, -mh / 2, mw, mh);
+          ctx.restore();
+        } catch (err) {
+          console.warn('Frame media skipped during export:', err);
+        }
+        ctx.restore();
+      }
+      await drawImg(bg.getAttribute('src'), bg.offsetLeft, bg.offsetTop, bg.clientWidth, bg.clientHeight);
+    };
+
+    const drawItem = async (el) => {
+      const type = el.dataset.type;
+      const x = parseFloat(el.dataset.x) || 0;
+      const y = parseFloat(el.dataset.y) || 0;
+      const rot = (parseFloat(el.dataset.rotation) || 0) * Math.PI / 180;
+      const sx = parseFloat(el.dataset.sx) || parseFloat(el.dataset.scale) || 1;
+      const sy = parseFloat(el.dataset.sy) || parseFloat(el.dataset.scale) || 1;
+      const w = el.offsetWidth || 1;
+      const h = el.offsetHeight || 1;
+
+      ctx.save();
+      ctx.translate(x + w / 2, y + h / 2);
+      ctx.rotate(rot);
+      ctx.scale(sx, sy);
+      ctx.translate(-w / 2, -h / 2);
+
+      if (type === 'frame') {
+        await drawFrameItem(el);
+      } else if (type === 'text') {
+        const text = el.querySelector('.text-body')?.textContent || '';
+        const size = parseFloat(el.dataset.textSize) || 19;
+        const lh = size * ((parseFloat(el.dataset.textLineHeight) || 120) / 100);
+        drawWrappedText(text, 10, 6, Math.max(20, w - 20), lh, `${size}px '${el.dataset.font || 'Caveat'}'`, el.dataset.textColor || '#333', el.dataset.textAlign || 'left');
+      } else if (type === 'polaroid') {
+        const body = el.querySelector('.polaroid-body');
+        const img = el.querySelector('.polaroid-body img');
+        ctx.fillStyle = '#fff';
+        ctx.shadowColor = 'rgba(0,0,0,0.18)';
+        ctx.shadowBlur = 12;
+        ctx.shadowOffsetY = 3;
+        ctx.fillRect(0, 0, body?.offsetWidth || w, body?.offsetHeight || h);
+        ctx.shadowColor = 'transparent';
+        if (img) await drawImg(img.getAttribute('src'), img.offsetLeft, img.offsetTop, img.clientWidth, img.clientHeight);
+        const caption = el.querySelector('.polaroid-caption')?.value || '';
+        if (caption) drawWrappedText(caption, 8, (img?.offsetTop || 0) + (img?.clientHeight || 0) + 8, w - 16, 18, "16px 'Shadows Into Light'", '#666', 'center');
+      } else if (type === 'note') {
+        const body = el.querySelector('.note-body');
+        ctx.fillStyle = el.dataset.color || '#ffe7a8';
+        ctx.fillRect(0, 0, body?.offsetWidth || w, body?.offsetHeight || h);
+        const nt = el.querySelector('.note-text-inner');
+        if (nt?.textContent) drawWrappedText(nt.textContent, parseFloat(nt.dataset.tx) || 12, parseFloat(nt.dataset.ty) || 12, w - 24, 22, "18px 'Caveat'", '#333');
+      } else if (type === 'tape') {
+        const body = el.querySelector('.tape-body');
+        const style = getComputedStyle(body);
+        ctx.fillStyle = style.backgroundColor && style.backgroundColor !== 'rgba(0, 0, 0, 0)' ? style.backgroundColor : '#d95c4d';
+        ctx.globalAlpha = parseFloat(style.opacity) || 0.78;
+        ctx.fillRect(0, 0, body?.offsetWidth || w, body?.offsetHeight || h);
+        ctx.globalAlpha = 1;
+      } else {
+        const imgs = [...el.querySelectorAll('img')].filter(img => !img.closest('.item-toolbar') && !img.closest('.select-frame'));
+        for (const img of imgs) {
+          await drawImg(img.getAttribute('src'), img.offsetLeft, img.offsetTop, img.clientWidth, img.clientHeight);
+        }
+      }
+
+      ctx.restore();
+    };
+
+    const items = [...itemsLayer.querySelectorAll('.scrap-item')].sort((a, b) => (parseInt(a.style.zIndex) || 0) - (parseInt(b.style.zIndex) || 0));
+    for (const item of items) {
+      await drawItem(item);
+    }
+
+    const jpegBlob = await new Promise(resolve => exportCanvas.toBlob(resolve, 'image/jpeg', 0.94));
+    if (!jpegBlob) throw new Error('jpeg_blob_empty');
+    const filename = `scrapbook-page-${currentSpread + 1}.jpg`;
+    const url = URL.createObjectURL(jpegBlob);
     const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `scrapbook-page-${currentSpread + 1}.svg`;
+    link.href = url;
+    link.download = filename;
     document.body.appendChild(link);
     link.click();
     link.remove();
-    setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+    showPreparedDownload(url, filename);
+    setTimeout(() => URL.revokeObjectURL(url), 15000);
   }
 
   function bindUtilButtons() {
@@ -6375,8 +7331,13 @@ body {
       toggleUtilityMenu('settingsMenu');
     });
 
-    $('#downloadPageBtn')?.addEventListener('click', () => {
-      downloadCurrentPage();
+    $('#downloadPageBtn')?.addEventListener('click', async () => {
+      try {
+        await downloadCurrentPage();
+      } catch (err) {
+        console.warn('Could not export JPEG:', err);
+        alert('Sayfa JPEG olarak indirilemedi. Görsellerin yüklenmesini bekleyip tekrar dene.');
+      }
       closeUtilityMenus();
     });
 
