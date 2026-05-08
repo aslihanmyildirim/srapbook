@@ -95,12 +95,15 @@ body.login-locked .cloud-status {
 }
 
 .closed-book-login {
-  width: min(92vw, 480px);
-  min-height: 600px;
+  --story-book-w: min(900px, 72vw);
+  --story-book-h: calc(var(--story-book-w) / 1.7);
+  width: var(--story-book-w);
+  min-height: max(600px, calc(var(--story-book-h) + 110px));
   position: relative;
   display: grid;
   place-items: center;
-  perspective: 1400px;
+  perspective: 1800px;
+  transform-style: preserve-3d;
 }
 
 .closed-book-cover {
@@ -121,25 +124,172 @@ body.login-locked .cloud-status {
   transform: none;
   transform-origin: 54px 50%;
   backface-visibility: hidden;
+  transform-style: preserve-3d;
+  z-index: 20;
+}
+
+.opened-left-cover {
+  display: none;
+  position: absolute;
+  width: min(70vw, 350px);
+  min-height: 520px;
+  border-radius: 30px 18px 18px 30px;
+  background:
+    linear-gradient(270deg, rgba(45,15,15,0.42), transparent 13%),
+    linear-gradient(135deg, #6f302c 0%, #4b1e1d 52%, #381514 100%);
+  box-shadow:
+    -18px 22px 46px rgba(0,0,0,0.28),
+    inset -12px 0 18px rgba(255,255,255,0.06),
+    inset 14px 0 20px rgba(0,0,0,0.2);
+  transform: translateX(-214px) rotateZ(-2deg) scale(0.965);
+  opacity: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.opened-left-cover::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 28px;
+  width: 16px;
+  background: linear-gradient(270deg, rgba(0,0,0,0.24), rgba(255,255,255,0.08), transparent);
+  opacity: 0.62;
+}
+
+.open-book-spread {
+  position: absolute;
+  width: var(--story-book-w);
+  aspect-ratio: 1.7 / 1;
+  min-height: 0;
+  border-radius: 12px;
+  background: #e8e2d8;
+  box-shadow:
+    0 24px 46px rgba(0,0,0,0.25);
+  opacity: 0;
+  z-index: 8;
+  pointer-events: none;
+}
+
+.open-book-spread .page-stack-left,
+.open-book-spread .page-stack-right {
+  display: none;
+}
+
+.open-book-spread .page-stack-left {
+  display: none;
+}
+
+.open-book-spread .page-stack-right {
+  display: none;
+}
+
+.open-book-spread .book-bottom-shadow {
+  display: none;
+}
+
+.open-book-spread::before,
+.open-book-spread::after {
+  content: "";
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  width: calc(50% - 2px);
+  background-color: var(--page);
+  background-image: var(--page-texture);
+  background-size: inherit;
+}
+
+.open-book-spread::before {
+  left: 8px;
+  border-radius: 8px 0 0 8px;
+  box-shadow: inset -4px 0 12px rgba(0,0,0,0.04);
+}
+
+.open-book-spread::after {
+  right: 8px;
+  border-radius: 0 8px 8px 0;
+  box-shadow: inset 4px 0 12px rgba(0,0,0,0.04);
+}
+
+.open-book-spread::before,
+.open-book-spread::after {
+  background:
+    var(--page-texture),
+    linear-gradient(var(--page), var(--page));
+}
+
+.open-book-spread .spread-spine {
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 50%;
+  width: 10px;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, rgba(0,0,0,0.16), rgba(255,255,255,0.3), rgba(0,0,0,0.12));
+  z-index: 1;
+}
+
+.closed-book-cover > * {
+  transition: opacity 0.28s ease;
 }
 
 .closed-book-cover::before {
-  content: none;
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(90deg, rgba(45,15,15,0.42), transparent 13%),
+    linear-gradient(135deg, #6f302c 0%, #4b1e1d 52%, #381514 100%);
+  box-shadow:
+    inset 12px 0 18px rgba(255,255,255,0.06),
+    inset -14px 0 20px rgba(0,0,0,0.2);
+  transform: rotateY(180deg);
+  backface-visibility: hidden;
+  pointer-events: none;
 }
 
 .closed-book-page {
   position: absolute;
-  width: min(86vw, 406px);
-  min-height: 530px;
-  border-radius: 24px 30px 30px 24px;
+  left: 50%;
+  top: 50%;
+  width: calc((var(--story-book-w) - 18px) / 2);
+  height: calc(var(--story-book-h) - 16px);
+  min-height: 0;
+  border-radius: 18px 30px 30px 18px;
   background:
-    radial-gradient(circle at 24% 18%, rgba(255,255,255,0.55), transparent 22%),
-    repeating-linear-gradient(0deg, rgba(118,84,48,0.045) 0 1px, transparent 1px 13px),
-    linear-gradient(90deg, rgba(150,118,78,0.2), transparent 13%),
-    linear-gradient(135deg, #fff9ee 0%, #f2dfbd 100%);
-  box-shadow: 14px 18px 38px rgba(0,0,0,0.22), inset 9px 0 18px rgba(120,80,40,0.12);
-  transform-origin: 54px 50%;
-  transform: rotateY(0deg);
+    var(--page-texture),
+    linear-gradient(var(--page), var(--page));
+  box-shadow: inset 8px 0 14px rgba(0,0,0,0.05);
+  transform-origin: left center;
+  transform: translateY(-50%) rotateY(0deg);
+  opacity: 0;
+  z-index: 0;
+  pointer-events: none;
+  backface-visibility: hidden;
+}
+
+.closed-book-page.page-1 { z-index: 7; }
+.closed-book-page.page-2 { z-index: 8; }
+.closed-book-page.page-3 { z-index: 9; }
+.closed-book-page.page-4 { z-index: 10; }
+
+.found-book-page {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc((var(--story-book-w) - 18px) / 2);
+  height: calc(var(--story-book-h) - 16px);
+  min-height: 0;
+  border-radius: 18px 30px 30px 18px;
+  background:
+    var(--page-texture),
+    linear-gradient(var(--page), var(--page));
+  box-shadow: inset 8px 0 14px rgba(0,0,0,0.05);
+  transform-origin: left center;
+  transform: translateY(-50%) rotateY(-8deg) scale(0.985);
   opacity: 0;
   z-index: 0;
   pointer-events: none;
@@ -330,11 +480,47 @@ body.login-locked .cloud-status {
 }
 
 .login-gate.opening .closed-book-cover {
-  animation: bookOpen 1.05s cubic-bezier(.2,.72,.18,1) forwards;
+  animation: storyboardCoverOpen 1.05s 0.85s cubic-bezier(.16,.78,.2,1) forwards;
+}
+
+.login-gate.opening .opened-left-cover {
+  animation: none;
+}
+
+.login-gate.opening .open-book-spread {
+  animation: openSpreadReveal 6.35s 0.88s ease forwards;
+}
+
+.login-gate.opening .closed-book-cover > * {
+  opacity: 0;
+}
+
+.login-gate.opening .closed-book-cover::after {
+  opacity: 0.35;
 }
 
 .login-gate.opening .closed-book-page {
-  animation: pageTurn 1.05s 0.18s cubic-bezier(.18,.7,.2,1) forwards;
+  animation: storyboardFastPage 0.95s cubic-bezier(.22,.68,.24,1) forwards;
+}
+
+.login-gate.opening .closed-book-page.page-1 {
+  animation-delay: 1.92s;
+}
+
+.login-gate.opening .closed-book-page.page-2 {
+  animation-delay: 2.28s;
+}
+
+.login-gate.opening .closed-book-page.page-3 {
+  animation-delay: 2.64s;
+}
+
+.login-gate.opening .closed-book-page.page-4 {
+  animation: storyboardSlowPage 1.9s 3.72s cubic-bezier(.18,.78,.22,1) forwards;
+}
+
+.login-gate.opening .found-book-page {
+  animation: storyboardFoundPage 1.9s 5.08s cubic-bezier(.16,.78,.2,1) forwards;
 }
 
 @keyframes bookOpen {
@@ -352,20 +538,186 @@ body.login-locked .cloud-status {
   }
 }
 
+@keyframes bookOpenLeft {
+  0% {
+    transform: rotateY(0deg) translateX(0) scale(1);
+    opacity: 1;
+  }
+  55% {
+    transform: rotateY(-92deg) translateX(-132px) rotateZ(-1deg) scale(0.985);
+    opacity: 1;
+  }
+  100% {
+    transform: rotateY(-180deg) translateX(-244px) rotateZ(-2deg) scale(0.965);
+    opacity: 0;
+  }
+}
+
+@keyframes openedCoverHold {
+  0% {
+    opacity: 0;
+    transform: translateX(-226px) rotateZ(-2deg) scale(0.955);
+  }
+  18% {
+    opacity: 0.94;
+    transform: translateX(-214px) rotateZ(-2deg) scale(0.965);
+  }
+  86% {
+    opacity: 0.94;
+    transform: translateX(-214px) rotateZ(-2deg) scale(0.965);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-214px) rotateZ(-2deg) scale(0.965);
+  }
+}
+
+@keyframes openSpreadReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  94% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @keyframes pageTurn {
   0% {
-    transform: rotateY(0deg) translateX(0) scale(0.985);
+    transform: translateX(54px) rotateY(0deg) scale(0.985);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  58% {
+    transform: translateX(18px) rotateY(-76deg) scale(0.995);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-118px) rotateY(-158deg) scale(0.95);
+    opacity: 0;
+  }
+}
+
+@keyframes pageFind {
+  0% {
+    transform: translateX(54px) rotateY(0deg) scale(0.985);
     opacity: 0;
   }
   14% {
     opacity: 1;
   }
-  52% {
-    transform: rotateY(-62deg) translateX(-18px) scale(0.99);
+  56% {
+    transform: translateX(34px) rotateY(-36deg) scale(0.995);
+    opacity: 1;
+  }
+  78% {
+    transform: translateX(50px) rotateY(-10deg) scale(1);
+    opacity: 0.96;
+  }
+  100% {
+    transform: translateX(54px) rotateY(0deg) scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes foundPageSettle {
+  0% {
+    transform: translateX(54px) rotateY(-14deg) scale(0.98);
+    opacity: 0;
+  }
+  32% {
+    opacity: 1;
+  }
+  72% {
+    transform: translateX(54px) rotateY(-2deg) scale(1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateX(54px) rotateY(0deg) scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes storyboardCoverOpen {
+  0% {
+    transform: translateX(0) rotateY(0deg) rotateZ(0deg) scale(1);
+    opacity: 1;
+  }
+  48% {
+    transform: translateX(-132px) rotateY(-92deg) rotateZ(-1deg) scale(0.98);
     opacity: 1;
   }
   100% {
-    transform: rotateY(-136deg) translateX(-74px) scale(0.95);
+    transform: translateX(-310px) rotateY(-180deg) rotateZ(-2deg) scale(0.78);
+    opacity: 0.92;
+  }
+}
+
+@keyframes storyboardFastPage {
+  0% {
+    transform: translateY(-50%) rotateY(0deg) scale(0.98);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-54%) rotateY(-76deg) scale(1.02);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-50%) rotateY(-176deg) scale(0.96);
+    opacity: 0;
+  }
+}
+
+@keyframes storyboardSlowPage {
+  0% {
+    transform: translateY(-50%) rotateY(0deg) scale(0.98);
+    opacity: 0;
+  }
+  16% {
+    opacity: 1;
+  }
+  48% {
+    transform: translateY(-54%) rotateY(-42deg) scale(1.01);
+    opacity: 1;
+  }
+  76% {
+    transform: translateY(-51%) rotateY(-12deg) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-50%) rotateY(0deg) scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes storyboardFoundPage {
+  0% {
+    transform: translateY(-50%) rotateY(-8deg) scale(0.99);
+    opacity: 0;
+  }
+  28% {
+    opacity: 1;
+  }
+  76% {
+    transform: translateY(-50%) rotateY(0deg) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-50%) rotateY(0deg) scale(1);
     opacity: 0;
   }
 }
@@ -533,6 +885,19 @@ body.login-locked .cloud-status {
   z-index: 1;
 }
 
+.notebook-bg::before,
+.notebook-bg::after {
+  content: none;
+}
+
+.notebook-bg::before {
+  content: none;
+}
+
+.notebook-bg::after {
+  content: none;
+}
+
 .page-left, .page-right {
   flex: 1;
   background-color: var(--page);
@@ -583,7 +948,7 @@ body.login-locked .cloud-status {
   top: 8px; left: 8px; right: 8px; bottom: 8px;
   z-index: 10;
   border-radius: 8px;
-  overflow: hidden;
+  overflow: visible;
   transition: opacity 0.15s ease;
 }
 
@@ -1704,6 +2069,10 @@ body.login-locked .cloud-status {
   filter: drop-shadow(0 10px 24px rgba(0,0,0,0.3));
 }
 
+.scrap-item.selected {
+  z-index: 9998 !important;
+}
+
 /* Item Toolbar — top: layer, copy, delete */
 .item-toolbar {
   position: absolute;
@@ -1717,7 +2086,7 @@ body.login-locked .cloud-status {
   padding: 6px 10px;
   box-shadow: 0 2px 14px rgba(0,0,0,0.13);
   backdrop-filter: blur(8px);
-  z-index: 100;
+  z-index: 10000;
   white-space: nowrap;
 }
 
@@ -1800,7 +2169,7 @@ body.login-locked .cloud-status {
   border: 1.5px solid #ddd;
   box-shadow: 0 2px 8px rgba(0,0,0,0.12);
   cursor: grab;
-  z-index: 100;
+  z-index: 10000;
   place-items: center;
 }
 
@@ -1820,7 +2189,7 @@ body.login-locked .cloud-status {
   border: 1.5px solid #5b9cf6;
   border-radius: 3px;
   pointer-events: none;
-  z-index: 50;
+  z-index: 9999;
 }
 
 .scrap-item.selected .select-frame {
@@ -1835,7 +2204,7 @@ body.login-locked .cloud-status {
   border: 2px solid #5b9cf6;
   border-radius: 50%;
   pointer-events: auto;
-  z-index: 51;
+  z-index: 10000;
 }
 
 .rh-tl { top: -5px; left: -5px; cursor: nwse-resize; }
@@ -2923,7 +3292,18 @@ body.login-locked .cloud-status {
 
 <div class="login-gate" id="loginGate" aria-modal="true" role="dialog">
   <div class="closed-book-login">
-    <div class="closed-book-page" aria-hidden="true"></div>
+    <div class="opened-left-cover" aria-hidden="true"></div>
+    <div class="open-book-spread" aria-hidden="true">
+      <span class="spread-spine"></span>
+      <span class="page-stack-left"></span>
+      <span class="page-stack-right"></span>
+      <span class="book-bottom-shadow"></span>
+    </div>
+    <div class="closed-book-page page-1" aria-hidden="true"></div>
+    <div class="closed-book-page page-2" aria-hidden="true"></div>
+    <div class="closed-book-page page-3" aria-hidden="true"></div>
+    <div class="closed-book-page page-4" aria-hidden="true"></div>
+    <div class="found-book-page" aria-hidden="true"></div>
     <div class="closed-book-cover">
       <h1 class="login-title" aria-label="Scrapbook">
         <span class="login-letter-logo">
@@ -2956,8 +3336,8 @@ body.login-locked .cloud-status {
           Defter Anahtarı
           <input id="loginKey" type="password" autocomplete="current-password" placeholder="En az 6 karakter" minlength="6" required>
         </label>
-        <p class="login-error" id="loginError"></p>
-        <button class="forgot-password-btn" id="forgotPasswordBtn" type="button">Şifremi unuttum</button>
+        <p class="login-error" id="loginError" aria-live="polite"></p>
+        <button class="forgot-password-btn" id="forgotPasswordBtn" type="button" onclick="window.__scrapbookForgotPassword?.(event)">Şifremi unuttum</button>
         <button class="login-open-btn" id="loginSubmitBtn" type="submit">Sign In</button>
       </form>
     </div>
@@ -3016,6 +3396,7 @@ body.login-locked .cloud-status {
           </div>
         </div>
         <button type="button" id="settingsClearBtn">Sayfayı Temizle</button>
+        <button type="button" id="settingsLogoutBtn">Çıkış Yap</button>
       </div>
     </div>
   </div>
@@ -3467,6 +3848,8 @@ body.login-locked .cloud-status {
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmdXpweHdjaGZ6cmlhY3dhb2dkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwMDI1OTYsImV4cCI6MjA5MzU3ODU5Nn0.lvk1Gud1cgPUiw5HngYveVVrYg_4CrMtHM-SsPJGpN0';
   const SUPABASE_MEDIA_BUCKET = 'scrapbook-media';
   const SUPABASE_CLIENT_ID_KEY = 'scrapbook-cloud-client-id';
+  const PASSWORD_RESET_MODE_KEY = 'scrapbook-password-reset-mode';
+  const PUBLIC_APP_URL = 'https://scrapbook-one-dusky.vercel.app/';
   const supabase = window.supabase?.createClient?.(SUPABASE_URL, SUPABASE_ANON_KEY) || null;
   let supabaseSessionPromise = null;
   let zCounter = 20;
@@ -3524,12 +3907,55 @@ body.login-locked .cloud-status {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || '').trim());
   }
 
+  function appendQueryParam(url, key, value) {
+    const cleanUrl = url.split('#')[0];
+    const separator = cleanUrl.includes('?') ? '&' : '?';
+    return `${cleanUrl}${separator}${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
+  }
+
+  function getAuthRedirectUrl() {
+    const { protocol, hostname, href } = window.location;
+    const isLocal = protocol === 'file:' || hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1';
+    if (isLocal) return PUBLIC_APP_URL;
+    return href.split('#')[0].split('?')[0];
+  }
+
+  function getPasswordResetRedirectUrl() {
+    return appendQueryParam(getAuthRedirectUrl(), 'auth', 'reset');
+  }
+
+  function isPasswordRecoveryRedirect() {
+    const authParams = `${window.location.search}&${window.location.hash}`;
+    return authParams.includes('auth=reset') || authParams.includes('type=recovery');
+  }
+
+  function isSupabaseAuthCallback() {
+    const authParams = `${window.location.search}&${window.location.hash}`;
+    return authParams.includes('access_token=') || authParams.includes('refresh_token=') || authParams.includes('error_description=');
+  }
+
+  function hasPasswordResetCallback() {
+    return isPasswordRecoveryRedirect() || isSupabaseAuthCallback();
+  }
+
+  function shouldHoldLoginGateForAuth() {
+    return hasPasswordResetCallback()
+      || localStorage.getItem(PASSWORD_RESET_MODE_KEY) === '1'
+  }
+
   function loadLocalUsers() {
     return JSON.parse(localStorage.getItem(LOCAL_USERS_KEY) || '{}');
   }
 
   function saveLocalUsers(users) {
     localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(users));
+  }
+
+  function deleteLocalUser(email) {
+    const users = loadLocalUsers();
+    if (!users[email]) return;
+    delete users[email];
+    saveLocalUsers(users);
   }
 
   function createLocalUser(name, email, password) {
@@ -3560,7 +3986,29 @@ body.login-locked .cloud-status {
     document.body.classList.remove('login-locked');
     if (!gate) return;
     gate.classList.add('opening');
-    window.setTimeout(() => gate.classList.add('hidden'), 1280);
+    window.setTimeout(() => gate.classList.add('hidden'), 7250);
+  }
+
+  async function logoutMember() {
+    persistAll();
+    closeUtilityMenus();
+    localStorage.removeItem(USER_PROFILE_KEY);
+    supabaseSessionPromise = null;
+    try {
+      await supabase?.auth?.signOut?.();
+    } catch (err) {
+      console.warn('Supabase sign out failed; continuing locally.', err);
+    }
+
+    const gate = $('#loginGate');
+    if (gate) {
+      gate.classList.remove('hidden', 'opening');
+    }
+    $('#loginForm')?.reset();
+    const errorEl = $('#loginError');
+    if (errorEl) errorEl.textContent = '';
+    $('#signInTab')?.click();
+    document.body.classList.add('login-locked');
   }
 
   async function signUpMember(name, email, password) {
@@ -3568,7 +4016,10 @@ body.login-locked .cloud-status {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { full_name: name } }
+        options: {
+          data: { full_name: name },
+          emailRedirectTo: getAuthRedirectUrl()
+        }
       });
       if (error) throw error;
       if (data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
@@ -3590,8 +4041,16 @@ body.login-locked .cloud-status {
 
   async function sendPasswordResetEmail(email) {
     if (!supabase) throw new Error('Supabase bağlantısı kurulamadı.');
-    const redirectTo = window.location.origin + window.location.pathname;
+    const redirectTo = getPasswordResetRedirectUrl();
     const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+    if (error) throw error;
+  }
+
+  async function updateRecoveredPassword(password) {
+    if (!supabase) throw new Error('Supabase bağlantısı kurulamadı.');
+    const { data } = await supabase.auth.getSession();
+    if (!data?.session) throw new Error('missing_recovery_session');
+    const { error } = await supabase.auth.updateUser({ password });
     if (error) throw error;
   }
 
@@ -3609,6 +4068,9 @@ body.login-locked .cloud-status {
     if (message.includes('password') && (message.includes('6') || message.includes('six') || message.includes('short'))) {
       return 'Şifre kabul edilmedi. En az 6 karakterli daha güçlü bir defter anahtarı dene.';
     }
+    if (message.includes('email not confirmed') || message.includes('email_not_confirmed')) {
+      return 'E-posta henüz doğrulanmamış. Lütfen mailindeki doğrulama linkine tıkla, sonra tekrar giriş yap.';
+    }
     if (message.includes('already') || message.includes('registered') || code.includes('user_already_exists')) {
       return 'Bu e-posta ile hesap zaten var. Sign In ile giriş yap veya başka bir e-posta dene.';
     }
@@ -3617,6 +4079,9 @@ body.login-locked .cloud-status {
     }
     if (status === 429 || message.includes('rate limit')) {
       return 'Çok fazla deneme yapıldı. Biraz bekleyip tekrar dene.';
+    }
+    if (message.includes('missing_recovery_session')) {
+      return 'Yeni şifre belirlemek için maildeki güncel sıfırlama linkinden gelmen gerekiyor.';
     }
     if (mode === 'signin' && (message.includes('invalid login') || message.includes('invalid credentials'))) {
       return 'E-posta veya defter anahtarı hatalı. Bilgileri kontrol et.';
@@ -3637,13 +4102,6 @@ body.login-locked .cloud-status {
     const form = $('#loginForm');
     if (!gate || !form) return;
 
-    const savedProfile = JSON.parse(localStorage.getItem(USER_PROFILE_KEY) || 'null');
-    if (savedProfile?.email && isValidEmail(savedProfile.email)) {
-      gate.classList.add('hidden');
-      document.body.classList.remove('login-locked');
-      return;
-    }
-
     const errorEl = $('#loginError');
     const subtitle = $('#loginSubtitle');
     const submitBtn = $('#loginSubmitBtn');
@@ -3651,40 +4109,101 @@ body.login-locked .cloud-status {
     const forgotBtn = $('#forgotPasswordBtn');
     const tabs = [...$$('[data-auth-mode]')];
     let authMode = 'signin';
+    let recoveryMode = false;
+
+    if (!hasPasswordResetCallback() && localStorage.getItem(PASSWORD_RESET_MODE_KEY) === '1') {
+      localStorage.removeItem(PASSWORD_RESET_MODE_KEY);
+    }
 
     function setAuthMode(mode) {
       authMode = mode;
+      recoveryMode = mode === 'reset';
       tabs.forEach(tab => tab.classList.toggle('active', tab.dataset.authMode === mode));
       nameField.style.display = mode === 'signup' ? 'grid' : 'none';
-      forgotBtn.classList.toggle('hidden', mode !== 'signin');
+      if (forgotBtn) {
+        forgotBtn.classList.toggle('hidden', mode !== 'signin');
+        forgotBtn.disabled = false;
+      }
+      tabs.forEach(tab => tab.style.pointerEvents = recoveryMode ? 'none' : '');
+      $('#loginEmail').closest('.login-field').style.display = recoveryMode ? 'none' : 'grid';
       $('#loginName').required = mode === 'signup';
-      submitBtn.textContent = mode === 'signup' ? 'Create Account' : 'Sign In';
+      $('#loginEmail').required = !recoveryMode;
+      submitBtn.textContent = mode === 'signup' ? 'Create Account' : recoveryMode ? 'Yeni Şifreyi Kaydet' : 'Sign In';
       subtitle.textContent = mode === 'signup'
         ? 'Yeni defter hesabını oluştur.'
+        : recoveryMode
+          ? 'Yeni defter anahtarını oluştur.'
         : 'Defter hesabına girmek için giriş yap.';
       errorEl.textContent = '';
+    }
+
+    function showPasswordResetMode(message = 'Yeni defter anahtarını yazıp kaydet.') {
+      localStorage.setItem(PASSWORD_RESET_MODE_KEY, '1');
+      localStorage.removeItem(USER_PROFILE_KEY);
+      gate.classList.remove('hidden', 'opening');
+      document.body.classList.add('login-locked');
+      setAuthMode('reset');
+      $('#loginKey').value = '';
+      $('#loginKey').focus();
+      errorEl.textContent = message;
     }
 
     tabs.forEach(tab => tab.addEventListener('click', () => setAuthMode(tab.dataset.authMode)));
     setAuthMode('signin');
 
-    forgotBtn.addEventListener('click', async () => {
-      const email = $('#loginEmail').value.trim().toLowerCase();
+    supabase?.auth?.onAuthStateChange?.((event) => {
+      if (event !== 'PASSWORD_RECOVERY') {
+        if (shouldHoldLoginGateForAuth()) {
+          gate.classList.remove('hidden', 'opening');
+          document.body.classList.add('login-locked');
+        }
+        return;
+      }
+      showPasswordResetMode('Mail doğrulandı. Yeni defter anahtarını yazıp kaydet.');
+    });
+
+    if (shouldHoldLoginGateForAuth()) {
+      showPasswordResetMode('Yeni defter anahtarını yazıp kaydet.');
+    } else {
+      const savedProfile = JSON.parse(localStorage.getItem(USER_PROFILE_KEY) || 'null');
+      if (savedProfile?.email && isValidEmail(savedProfile.email)) {
+        gate.classList.add('hidden');
+        document.body.classList.remove('login-locked');
+        return;
+      }
+    }
+
+    async function handleForgotPassword(event) {
+      event?.preventDefault?.();
+      event?.stopPropagation?.();
+
+      if (authMode !== 'signin') setAuthMode('signin');
+      const emailInput = $('#loginEmail');
+      const email = emailInput.value.trim().toLowerCase();
       if (!isValidEmail(email)) {
         errorEl.textContent = 'Şifre sıfırlama maili için önce geçerli e-postanı yaz.';
+        emailInput.focus();
+        return;
+      }
+      if (!supabase) {
+        errorEl.textContent = 'Şifre sıfırlama için Supabase bağlantısı yüklenemedi. İnternet bağlantını kontrol edip sayfayı yenile.';
         return;
       }
       forgotBtn.disabled = true;
+      localStorage.removeItem(PASSWORD_RESET_MODE_KEY);
       errorEl.textContent = 'Şifre sıfırlama maili gönderiliyor...';
       try {
         await sendPasswordResetEmail(email);
-        errorEl.textContent = 'Şifre sıfırlama maili gönderildi. Gelen kutunu kontrol et.';
+        errorEl.textContent = 'Şifre sıfırlama isteği alındı. Mail geldiyse gelen kutunu ve spam klasörünü kontrol et.';
       } catch (err) {
         errorEl.textContent = getFriendlyAuthError(err, 'reset');
       } finally {
         forgotBtn.disabled = false;
       }
-    });
+    }
+
+    window.__scrapbookForgotPassword = handleForgotPassword;
+    forgotBtn.onclick = handleForgotPassword;
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -3696,7 +4215,7 @@ body.login-locked .cloud-status {
         errorEl.textContent = 'Lütfen adını doğru gir.';
         return;
       }
-      if (!isValidEmail(email)) {
+      if (!recoveryMode && !isValidEmail(email)) {
         errorEl.textContent = 'Geçerli bir e-posta gir.';
         return;
       }
@@ -3706,29 +4225,58 @@ body.login-locked .cloud-status {
       }
 
       submitBtn.disabled = true;
-      errorEl.textContent = authMode === 'signup' ? 'Hesap oluşturuluyor...' : 'Giriş yapılıyor...';
+      errorEl.textContent = recoveryMode ? 'Yeni şifre kaydediliyor...' : authMode === 'signup' ? 'Hesap oluşturuluyor...' : 'Giriş yapılıyor...';
       try {
+        if (recoveryMode) {
+          await updateRecoveredPassword(key);
+          localStorage.removeItem(PASSWORD_RESET_MODE_KEY);
+          window.history.replaceState({}, document.title, getAuthRedirectUrl());
+          errorEl.textContent = 'Şifren güncellendi. Yeni şifrenle giriş yapabilirsin.';
+          await supabase?.auth?.signOut?.();
+          setAuthMode('signin');
+          $('#loginKey').value = '';
+          return;
+        }
+
         if (authMode === 'signup') {
-          try {
-            await signUpMember(name, email, key);
-          } catch (cloudErr) {
-            console.warn('Supabase sign up failed; creating local account.', cloudErr);
+          if (supabase) {
+            const signUpData = await signUpMember(name, email, key);
+            deleteLocalUser(email);
+            if (!signUpData?.session) {
+              setAuthMode('signin');
+              $('#loginEmail').value = email;
+              $('#loginKey').value = '';
+              errorEl.textContent = 'Hesap oluşturuldu. Mailindeki doğrulama linkine tıkla, sonra Sign In ile giriş yap.';
+              return;
+            }
+          } else {
+            createLocalUser(name, email, key);
           }
-          createLocalUser(name, email, key);
           localStorage.setItem(USER_PROFILE_KEY, JSON.stringify({
             name,
             email,
+            authProvider: supabase ? 'supabase' : 'local',
             createdAt: new Date().toISOString()
           }));
         } else {
+          let authProvider = 'supabase';
           try {
             await signInMember(email, key);
+            deleteLocalUser(email);
           } catch (cloudErr) {
-            signInLocalUser(email, key);
+            const localUser = loadLocalUsers()[email];
+            if (!localUser) throw cloudErr;
+            try {
+              signInLocalUser(email, key);
+              authProvider = 'local';
+            } catch (localErr) {
+              throw cloudErr;
+            }
           }
           localStorage.setItem(USER_PROFILE_KEY, JSON.stringify({
             name: name || email.split('@')[0],
             email,
+            authProvider,
             lastLoginAt: new Date().toISOString()
           }));
         }
@@ -3758,6 +4306,10 @@ body.login-locked .cloud-status {
       setCloudStatus('Local', 'local');
       return;
     }
+    if (shouldHoldLoginGateForAuth()) {
+      setCloudStatus('Reset', 'ready');
+      return;
+    }
     setCloudStatus('Cloud...');
     const session = await getSupabaseSession();
     setCloudStatus(session?.user ? 'Cloud ready' : 'Cloud test', 'ready');
@@ -3765,6 +4317,7 @@ body.login-locked .cloud-status {
 
   async function getSupabaseSession() {
     if (!supabase) return null;
+    if (shouldHoldLoginGateForAuth()) return null;
     if (!supabaseSessionPromise) {
       supabaseSessionPromise = (async () => {
         const { data: existing } = await supabase.auth.getSession();
@@ -7320,6 +7873,7 @@ body.login-locked .cloud-status {
 
     $('#undoBtn')?.addEventListener('click', undoPageChange);
     $('#redoBtn')?.addEventListener('click', redoPageChange);
+    $('#settingsLogoutBtn')?.addEventListener('click', logoutMember);
 
     $('#shareBtn')?.addEventListener('click', (e) => {
       e.stopPropagation();
