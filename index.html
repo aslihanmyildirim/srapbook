@@ -453,7 +453,7 @@ body.login-locked .cloud-status {
 
 .login-error {
   min-height: 20px;
-  color: #ffd7d7;
+  color: rgba(247,239,230,0.78);
   font-size: 0.88rem;
   text-align: center;
 }
@@ -481,6 +481,7 @@ body.login-locked .cloud-status {
 
 .login-gate.opening .closed-book-cover {
   animation: storyboardCoverOpen 1.05s 0.85s cubic-bezier(.16,.78,.2,1) forwards;
+  pointer-events: none;
 }
 
 .login-gate.opening .opened-left-cover {
@@ -489,6 +490,7 @@ body.login-locked .cloud-status {
 
 .login-gate.opening .open-book-spread {
   animation: openSpreadReveal 6.35s 0.88s ease forwards;
+  z-index: 12;
 }
 
 .login-gate.opening .closed-book-cover > * {
@@ -500,27 +502,33 @@ body.login-locked .cloud-status {
 }
 
 .login-gate.opening .closed-book-page {
-  animation: storyboardFastPage 0.95s cubic-bezier(.22,.68,.24,1) forwards;
+  animation: storyboardFastPage 0.72s cubic-bezier(.18,.74,.2,1) forwards;
+  z-index: 18;
 }
 
 .login-gate.opening .closed-book-page.page-1 {
   animation-delay: 1.92s;
+  z-index: 21;
 }
 
 .login-gate.opening .closed-book-page.page-2 {
   animation-delay: 2.28s;
+  z-index: 22;
 }
 
 .login-gate.opening .closed-book-page.page-3 {
   animation-delay: 2.64s;
+  z-index: 23;
 }
 
 .login-gate.opening .closed-book-page.page-4 {
-  animation: storyboardSlowPage 1.9s 3.72s cubic-bezier(.18,.78,.22,1) forwards;
+  animation: storyboardSlowPage 1.35s 3.72s cubic-bezier(.18,.78,.2,1) forwards;
+  z-index: 24;
 }
 
 .login-gate.opening .found-book-page {
-  animation: storyboardFoundPage 1.9s 5.08s cubic-bezier(.16,.78,.2,1) forwards;
+  animation: none;
+  z-index: 20;
 }
 
 @keyframes bookOpen {
@@ -658,9 +666,13 @@ body.login-locked .cloud-status {
     transform: translateX(-132px) rotateY(-92deg) rotateZ(-1deg) scale(0.98);
     opacity: 1;
   }
+  82% {
+    transform: translateX(-292px) rotateY(-176deg) rotateZ(-2deg) scale(0.8);
+    opacity: 0.2;
+  }
   100% {
     transform: translateX(-310px) rotateY(-180deg) rotateZ(-2deg) scale(0.78);
-    opacity: 0.92;
+    opacity: 0;
   }
 }
 
@@ -673,11 +685,15 @@ body.login-locked .cloud-status {
     opacity: 1;
   }
   50% {
-    transform: translateY(-54%) rotateY(-76deg) scale(1.02);
+    transform: translateY(-54%) rotateY(-90deg) scale(1.02);
+    opacity: 1;
+  }
+  82% {
+    transform: translateY(-51%) rotateY(-172deg) scale(0.98);
     opacity: 1;
   }
   100% {
-    transform: translateY(-50%) rotateY(-176deg) scale(0.96);
+    transform: translateY(-50%) rotateY(-180deg) scale(0.96);
     opacity: 0;
   }
 }
@@ -691,15 +707,15 @@ body.login-locked .cloud-status {
     opacity: 1;
   }
   48% {
-    transform: translateY(-54%) rotateY(-42deg) scale(1.01);
+    transform: translateY(-54%) rotateY(-90deg) scale(1.01);
     opacity: 1;
   }
   76% {
-    transform: translateY(-51%) rotateY(-12deg) scale(1);
+    transform: translateY(-51%) rotateY(-166deg) scale(0.99);
     opacity: 1;
   }
   100% {
-    transform: translateY(-50%) rotateY(0deg) scale(1);
+    transform: translateY(-50%) rotateY(-180deg) scale(0.97);
     opacity: 0;
   }
 }
@@ -3986,7 +4002,7 @@ body.login-locked .cloud-status {
     document.body.classList.remove('login-locked');
     if (!gate) return;
     gate.classList.add('opening');
-    window.setTimeout(() => gate.classList.add('hidden'), 7250);
+    window.setTimeout(() => gate.classList.add('hidden'), 5150);
   }
 
   async function logoutMember() {
