@@ -4346,6 +4346,7 @@ body.login-locked .cloud-status {
   const PUBLIC_APP_URL = 'https://scrapbook-one-dusky.vercel.app/';
   const supabase = window.supabase?.createClient?.(SUPABASE_URL, SUPABASE_ANON_KEY) || null;
   let supabaseSessionPromise = null;
+  let cloudAuthAvailable = Boolean(supabase);
   let zCounter = 20;
   let currentSpread = 0;
   let totalSpreads = 1;
@@ -4437,6 +4438,28 @@ body.login-locked .cloud-status {
       || localStorage.getItem(PASSWORD_RESET_MODE_KEY) === '1'
   }
 
+  function isCloudConnectionError(error) {
+    const message = String(error?.message || error || '').toLowerCase();
+    return message.includes('failed to fetch')
+      || message.includes('fetch failed')
+      || message.includes('network')
+      || message.includes('load failed')
+      || message.includes('could not resolve');
+  }
+
+  function markCloudUnavailable(error) {
+    if (!isCloudConnectionError(error)) return false;
+    cloudAuthAvailable = false;
+    supabaseSessionPromise = null;
+    setCloudStatus('Local', 'local');
+    console.warn('Supabase is unavailable; falling back to local accounts.', error);
+    return true;
+  }
+
+  function canUseCloudAuth() {
+    return Boolean(supabase && cloudAuthAvailable);
+  }
+
   function loadLocalUsers() {
     return JSON.parse(localStorage.getItem(LOCAL_USERS_KEY) || '{}');
   }
@@ -4506,7 +4529,7 @@ body.login-locked .cloud-status {
   }
 
   async function signUpMember(name, email, password) {
-    if (supabase) {
+    if (canUseCloudAuth()) {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -4525,7 +4548,7 @@ body.login-locked .cloud-status {
   }
 
   async function signInMember(email, password) {
-    if (supabase) {
+    if (canUseCloudAuth()) {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       return data;
@@ -4559,6 +4582,9 @@ body.login-locked .cloud-status {
     if (message.includes('local_invalid_credentials')) {
       return 'Bu cihazdaki hesap için e-posta veya defter anahtarı hatalı.';
     }
+    if (message.includes('cloud_unavailable_no_local_user')) {
+      return 'Bulut hesabına şu an ulaşılamıyor. Bu cihazda devam etmek için Sign Up ile yerel bir hesap oluşturabilirsin.';
+    }
     if (message.includes('password') && (message.includes('6') || message.includes('six') || message.includes('short'))) {
       return 'Şifre kabul edilmedi. En az 6 karakterli daha güçlü bir defter anahtarı dene.';
     }
@@ -4581,7 +4607,7 @@ body.login-locked .cloud-status {
       return 'E-posta veya defter anahtarı hatalı. Bilgileri kontrol et.';
     }
     if (message.includes('network') || message.includes('failed to fetch')) {
-      return 'Bağlantı kurulamadı. İnternet bağlantını kontrol edip tekrar dene.';
+      return 'Bulut bağlantısı kurulamadı. Uygulama bu cihazda yerel hesap modunda çalışacak.';
     }
     if (mode === 'reset') {
       return 'Şifre sıfırlama maili gönderilemedi. E-postayı kontrol et veya biraz sonra tekrar dene.';
@@ -4683,6 +4709,10 @@ body.login-locked .cloud-status {
         errorEl.textContent = 'Şifre sıfırlama için Supabase bağlantısı yüklenemedi. İnternet bağlantını kontrol edip sayfayı yenile.';
         return;
       }
+      if (!canUseCloudAuth()) {
+        errorEl.textContent = 'Şifre sıfırlama için bulut bağlantısı gerekiyor. Şu an uygulama yerel hesap modunda.';
+        return;
+      }
       forgotBtn.disabled = true;
       localStorage.removeItem(PASSWORD_RESET_MODE_KEY);
       errorEl.textContent = 'Şifre sıfırlama maili gönderiliyor...';
@@ -4733,15 +4763,20 @@ body.login-locked .cloud-status {
         }
 
         if (authMode === 'signup') {
-          if (supabase) {
-            const signUpData = await signUpMember(name, email, key);
-            deleteLocalUser(email);
-            if (!signUpData?.session) {
-              setAuthMode('signin');
-              $('#loginEmail').value = email;
-              $('#loginKey').value = '';
-              errorEl.textContent = 'Hesap oluşturuldu. Mailindeki doğrulama linkine tıkla, sonra Sign In ile giriş yap.';
-              return;
+          if (canUseCloudAuth()) {
+            try {
+              const signUpData = await signUpMember(name, email, key);
+              deleteLocalUser(email);
+              if (!signUpData?.session) {
+                setAuthMode('signin');
+                $('#loginEmail').value = email;
+                $('#loginKey').value = '';
+                errorEl.textContent = 'Hesap oluşturuldu. Mailindeki doğrulama linkine tıkla, sonra Sign In ile giriş yap.';
+                return;
+              }
+            } catch (cloudErr) {
+              if (!markCloudUnavailable(cloudErr)) throw cloudErr;
+              createLocalUser(name, email, key);
             }
           } else {
             createLocalUser(name, email, key);
@@ -4749,23 +4784,31 @@ body.login-locked .cloud-status {
           localStorage.setItem(USER_PROFILE_KEY, JSON.stringify({
             name,
             email,
-            authProvider: supabase ? 'supabase' : 'local',
+            authProvider: canUseCloudAuth() ? 'supabase' : 'local',
             createdAt: new Date().toISOString()
           }));
         } else {
-          let authProvider = 'supabase';
-          try {
-            await signInMember(email, key);
-            deleteLocalUser(email);
-          } catch (cloudErr) {
-            const localUser = loadLocalUsers()[email];
-            if (!localUser) throw cloudErr;
+          let authProvider = 'local';
+          if (canUseCloudAuth()) {
             try {
-              signInLocalUser(email, key);
-              authProvider = 'local';
-            } catch (localErr) {
-              throw cloudErr;
+              await signInMember(email, key);
+              deleteLocalUser(email);
+              authProvider = 'supabase';
+            } catch (cloudErr) {
+              markCloudUnavailable(cloudErr);
+              const localUser = loadLocalUsers()[email];
+              if (!localUser) {
+                if (!canUseCloudAuth()) throw new Error('cloud_unavailable_no_local_user');
+                throw cloudErr;
+              }
+              try {
+                signInLocalUser(email, key);
+              } catch (localErr) {
+                throw cloudErr;
+              }
             }
+          } else {
+            signInLocalUser(email, key);
           }
           localStorage.setItem(USER_PROFILE_KEY, JSON.stringify({
             name: name || email.split('@')[0],
@@ -4796,7 +4839,7 @@ body.login-locked .cloud-status {
   }
 
   async function warmSupabase() {
-    if (!supabase) {
+    if (!canUseCloudAuth()) {
       setCloudStatus('Local', 'local');
       return;
     }
@@ -4805,23 +4848,34 @@ body.login-locked .cloud-status {
       return;
     }
     setCloudStatus('Cloud...');
-    const session = await getSupabaseSession();
-    setCloudStatus(session?.user ? 'Cloud ready' : 'Cloud test', 'ready');
+    try {
+      const session = await getSupabaseSession();
+      setCloudStatus(session?.user ? 'Cloud ready' : 'Cloud test', 'ready');
+    } catch (err) {
+      markCloudUnavailable(err);
+    }
   }
 
   async function getSupabaseSession() {
-    if (!supabase) return null;
+    if (!canUseCloudAuth()) return null;
     if (shouldHoldLoginGateForAuth()) return null;
     if (!supabaseSessionPromise) {
       supabaseSessionPromise = (async () => {
-        const { data: existing } = await supabase.auth.getSession();
-        if (existing?.session) return existing.session;
-        const { data, error } = await supabase.auth.signInAnonymously();
-        if (error) {
+        try {
+          const { data: existing } = await supabase.auth.getSession();
+          if (existing?.session) return existing.session;
+          const { data, error } = await supabase.auth.signInAnonymously();
+          if (error) {
+            if (markCloudUnavailable(error)) return null;
+            console.warn('Supabase anonymous auth failed; using local file fallback.', error);
+            return null;
+          }
+          return data.session;
+        } catch (error) {
+          if (markCloudUnavailable(error)) return null;
           console.warn('Supabase anonymous auth failed; using local file fallback.', error);
           return null;
         }
-        return data.session;
       })();
     }
     return supabaseSessionPromise;
@@ -7620,11 +7674,13 @@ body.login-locked .cloud-status {
       'sticker1.png','sticker2.png','sticker3.png','sticker4.png','sticker5.png',
       'paper_piece_01.png','paper_piece_02.png','paper_piece_03.png','paper_piece_04.png','paper_piece_05_red_check.png',
       'paper_piece_06_newspaper.png','paper_piece_07_moon.png','paper_piece_08_blue_stars.png','paper_piece_09_flowers.png','paper_piece_10_handwriting.png',
-      'letter_A.png','letter_B.png','letter_C.png','letter_D.png','letter_E.png','letter_F.png',
-      'letter_G.png','letter_H.png','letter_I.png','letter_J.png','letter_K.png','letter_L.png',
-      'letter_M.png','letter_N.png','letter_O.png','letter_P.png','letter_Q.png','letter_R.png',
-      'letter_S.png','letter_T.png','letter_U.png','letter_V.png','letter_W.png','letter_X.png',
-      'letter_Y.png','letter_Z.png',
+      'clean_letter_A.png','clean_letter_B.png','clean_letter_C.png','clean_letter_D.png','clean_letter_E.png','clean_letter_F.png',
+      'clean_letter_G.png','clean_letter_H.png','clean_letter_I.png','clean_letter_J.png','clean_letter_K.png','clean_letter_L.png',
+      'clean_letter_M.png','clean_letter_N.png','clean_letter_O.png','clean_letter_P.png','clean_letter_Q.png','clean_letter_R.png',
+      'clean_letter_S.png','clean_letter_T.png','clean_letter_U.png','clean_letter_V.png','clean_letter_W.png','clean_letter_X.png',
+      'clean_letter_Y.png','clean_letter_Z.png',
+      'clean_number_0.png','clean_number_1.png','clean_number_2.png','clean_number_3.png','clean_number_4.png',
+      'clean_number_5.png','clean_number_6.png','clean_number_7.png','clean_number_8.png','clean_number_9.png',
     ];
 
     const PER_PAGE = 6; // 6 per page (last slot can be +upload)
