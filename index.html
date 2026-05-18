@@ -4518,26 +4518,42 @@ body.login-locked .cloud-status {
     window.setTimeout(() => gate.classList.add('hidden'), 1350);
   }
 
-  async function logoutMember() {
-    persistAll();
-    closeUtilityMenus();
-    localStorage.removeItem(USER_PROFILE_KEY);
-    supabaseSessionPromise = null;
-    try {
-      await supabase?.auth?.signOut?.();
-    } catch (err) {
-      console.warn('Supabase sign out failed; continuing locally.', err);
-    }
-
+  function showLoginGate() {
     const gate = $('#loginGate');
     if (gate) {
       gate.classList.remove('hidden', 'opening');
+      gate.style.visibility = '';
+      gate.style.opacity = '';
+      gate.style.pointerEvents = '';
     }
     $('#loginForm')?.reset();
     const errorEl = $('#loginError');
     if (errorEl) errorEl.textContent = '';
     $('#signInTab')?.click();
     document.body.classList.add('login-locked');
+  }
+
+  async function logoutMember() {
+    try {
+      persistAll();
+    } catch (err) {
+      console.warn('Could not save before logout; continuing logout.', err);
+    }
+    closeUtilityMenus();
+    localStorage.removeItem(USER_PROFILE_KEY);
+    localStorage.removeItem(PASSWORD_RESET_MODE_KEY);
+    localStorage.removeItem(LOCAL_PASSWORD_RESET_EMAIL_KEY);
+    supabaseSessionPromise = null;
+    showLoginGate();
+
+    if (supabase?.auth?.signOut) {
+      Promise.race([
+        supabase.auth.signOut(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('signout_timeout')), 2500))
+      ]).catch((err) => {
+        console.warn('Supabase sign out failed; continuing locally.', err);
+      });
+    }
   }
 
   async function signUpMember(name, email, password) {
