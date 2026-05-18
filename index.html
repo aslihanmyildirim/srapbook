@@ -4343,6 +4343,7 @@ body.login-locked .cloud-status {
   const SUPABASE_MEDIA_BUCKET = 'scrapbook-media';
   const SUPABASE_CLIENT_ID_KEY = 'scrapbook-cloud-client-id';
   const PASSWORD_RESET_MODE_KEY = 'scrapbook-password-reset-mode';
+  const LOCAL_PASSWORD_RESET_EMAIL_KEY = 'scrapbook-local-password-reset-email';
   const PUBLIC_APP_URL = 'https://scrapbook-one-dusky.vercel.app/';
   const supabase = window.supabase?.createClient?.(SUPABASE_URL, SUPABASE_ANON_KEY) || null;
   let supabaseSessionPromise = null;
@@ -4498,6 +4499,17 @@ body.login-locked .cloud-status {
     return user;
   }
 
+  function updateLocalUserPassword(email, password) {
+    const users = loadLocalUsers();
+    const user = users[email];
+    if (!user) throw new Error('local_user_not_found');
+    user.password = password;
+    user.updatedAt = new Date().toISOString();
+    users[email] = user;
+    saveLocalUsers(users);
+    return user;
+  }
+
   function openScrapbookFromGate() {
     const gate = $('#loginGate');
     document.body.classList.remove('login-locked');
@@ -4557,7 +4569,7 @@ body.login-locked .cloud-status {
   }
 
   async function sendPasswordResetEmail(email) {
-    if (!supabase) throw new Error('Supabase bağlantısı kurulamadı.');
+    if (!canUseCloudAuth()) throw new Error('cloud_unavailable');
     const redirectTo = getPasswordResetRedirectUrl();
     const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
     if (error) throw error;
@@ -4581,6 +4593,9 @@ body.login-locked .cloud-status {
     }
     if (message.includes('local_invalid_credentials')) {
       return 'Bu cihazdaki hesap için e-posta veya defter anahtarı hatalı.';
+    }
+    if (message.includes('local_user_not_found')) {
+      return 'Bu e-posta bu cihazda kayıtlı değil. Bulut bağlantısı gelince mail ile sıfırlamayı tekrar deneyebilirsin.';
     }
     if (message.includes('cloud_unavailable_no_local_user')) {
       return 'Bulut hesabına şu an ulaşılamıyor. Bu cihazda devam etmek için Sign Up ile yerel bir hesap oluşturabilirsin.';
@@ -4633,6 +4648,7 @@ body.login-locked .cloud-status {
 
     if (!hasPasswordResetCallback() && localStorage.getItem(PASSWORD_RESET_MODE_KEY) === '1') {
       localStorage.removeItem(PASSWORD_RESET_MODE_KEY);
+      localStorage.removeItem(LOCAL_PASSWORD_RESET_EMAIL_KEY);
     }
 
     function setAuthMode(mode) {
@@ -4666,6 +4682,13 @@ body.login-locked .cloud-status {
       $('#loginKey').value = '';
       $('#loginKey').focus();
       errorEl.textContent = message;
+    }
+
+    function startLocalPasswordReset(email) {
+      const localUser = loadLocalUsers()[email];
+      if (!localUser) throw new Error('local_user_not_found');
+      localStorage.setItem(LOCAL_PASSWORD_RESET_EMAIL_KEY, email);
+      showPasswordResetMode('Mail gönderilemediği için bu cihazdaki hesabın için yeni defter anahtarını burada belirleyebilirsin.');
     }
 
     tabs.forEach(tab => tab.addEventListener('click', () => setAuthMode(tab.dataset.authMode)));
@@ -4705,22 +4728,27 @@ body.login-locked .cloud-status {
         emailInput.focus();
         return;
       }
-      if (!supabase) {
-        errorEl.textContent = 'Şifre sıfırlama için Supabase bağlantısı yüklenemedi. İnternet bağlantını kontrol edip sayfayı yenile.';
-        return;
-      }
-      if (!canUseCloudAuth()) {
-        errorEl.textContent = 'Şifre sıfırlama için bulut bağlantısı gerekiyor. Şu an uygulama yerel hesap modunda.';
-        return;
-      }
       forgotBtn.disabled = true;
       localStorage.removeItem(PASSWORD_RESET_MODE_KEY);
+      localStorage.removeItem(LOCAL_PASSWORD_RESET_EMAIL_KEY);
       errorEl.textContent = 'Şifre sıfırlama maili gönderiliyor...';
       try {
-        await sendPasswordResetEmail(email);
-        errorEl.textContent = 'Şifre sıfırlama isteği alındı. Mail geldiyse gelen kutunu ve spam klasörünü kontrol et.';
+        if (canUseCloudAuth()) {
+          await sendPasswordResetEmail(email);
+          errorEl.textContent = 'Şifre sıfırlama isteği alındı. Mail geldiyse gelen kutunu ve spam klasörünü kontrol et.';
+        } else {
+          startLocalPasswordReset(email);
+        }
       } catch (err) {
-        errorEl.textContent = getFriendlyAuthError(err, 'reset');
+        if (markCloudUnavailable(err)) {
+          try {
+            startLocalPasswordReset(email);
+          } catch (localErr) {
+            errorEl.textContent = getFriendlyAuthError(localErr, 'reset');
+          }
+        } else {
+          errorEl.textContent = getFriendlyAuthError(err, 'reset');
+        }
       } finally {
         forgotBtn.disabled = false;
       }
@@ -4752,11 +4780,20 @@ body.login-locked .cloud-status {
       errorEl.textContent = recoveryMode ? 'Yeni şifre kaydediliyor...' : authMode === 'signup' ? 'Hesap oluşturuluyor...' : 'Giriş yapılıyor...';
       try {
         if (recoveryMode) {
-          await updateRecoveredPassword(key);
+          const localResetEmail = localStorage.getItem(LOCAL_PASSWORD_RESET_EMAIL_KEY);
+          if (localResetEmail) {
+            updateLocalUserPassword(localResetEmail, key);
+            $('#loginEmail').value = localResetEmail;
+          } else {
+            await updateRecoveredPassword(key);
+            await supabase?.auth?.signOut?.();
+          }
           localStorage.removeItem(PASSWORD_RESET_MODE_KEY);
-          window.history.replaceState({}, document.title, getAuthRedirectUrl());
+          localStorage.removeItem(LOCAL_PASSWORD_RESET_EMAIL_KEY);
+          if (!localResetEmail && hasPasswordResetCallback()) {
+            window.history.replaceState({}, document.title, getAuthRedirectUrl());
+          }
           errorEl.textContent = 'Şifren güncellendi. Yeni şifrenle giriş yapabilirsin.';
-          await supabase?.auth?.signOut?.();
           setAuthMode('signin');
           $('#loginKey').value = '';
           return;
