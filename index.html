@@ -4,6 +4,22 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Scrapbook Studio</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#4a1818">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Scrapbook">
+<link rel="apple-touch-icon" href="icon-192.png">
+<script>
+  // Register the service worker so the app shell works offline (PWA).
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch((err) => {
+        console.warn('Service worker registration failed:', err);
+      });
+    });
+  }
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Patrick+Hand&family=Shadows+Into+Light&family=Dancing+Script:wght@400;700&family=Indie+Flower&family=Kalam:wght@400;700&family=Satisfy&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -4392,6 +4408,7 @@ body.login-locked .cloud-status {
     bindGlobalClicks();
     bindAdjustPopup();
     bindAudioEditPopup();
+    bindConnectivity();
     warmSupabase();
     loadAppearance();
     loadLayout();
@@ -4614,7 +4631,7 @@ body.login-locked .cloud-status {
       return 'Bu e-posta bu cihazda kayıtlı değil. Bulut bağlantısı gelince mail ile sıfırlamayı tekrar deneyebilirsin.';
     }
     if (message.includes('cloud_unavailable_no_local_user')) {
-      return 'Bulut hesabına şu an ulaşılamıyor. Bu cihazda devam etmek için Sign Up ile yerel bir hesap oluşturabilirsin.';
+      return 'Sunucuya şu an ulaşılamıyor; bu hesap bu cihazda kayıtlı değil. İnternet bağlantını kontrol edip birazdan tekrar dene.';
     }
     if (message.includes('password') && (message.includes('6') || message.includes('six') || message.includes('short'))) {
       return 'Şifre kabul edilmedi. En az 6 karakterli daha güçlü bir defter anahtarı dene.';
@@ -4815,6 +4832,7 @@ body.login-locked .cloud-status {
           return;
         }
 
+        let usedLocalFallback = false;
         if (authMode === 'signup') {
           if (canUseCloudAuth()) {
             try {
@@ -4830,9 +4848,11 @@ body.login-locked .cloud-status {
             } catch (cloudErr) {
               if (!markCloudUnavailable(cloudErr)) throw cloudErr;
               createLocalUser(name, email, key);
+              usedLocalFallback = true;
             }
           } else {
             createLocalUser(name, email, key);
+            usedLocalFallback = true;
           }
           localStorage.setItem(USER_PROFILE_KEY, JSON.stringify({
             name,
@@ -4856,12 +4876,14 @@ body.login-locked .cloud-status {
               }
               try {
                 signInLocalUser(email, key);
+                usedLocalFallback = true;
               } catch (localErr) {
                 throw cloudErr;
               }
             }
           } else {
             signInLocalUser(email, key);
+            usedLocalFallback = true;
           }
           localStorage.setItem(USER_PROFILE_KEY, JSON.stringify({
             name: name || email.split('@')[0],
@@ -4871,6 +4893,9 @@ body.login-locked .cloud-status {
           }));
         }
         errorEl.textContent = '';
+        if (usedLocalFallback) {
+          window.alert('Sunucuya şu an ulaşılamadı. Hesabın ve değişikliklerin yalnızca bu cihaza/tarayıcıya kaydedildi; başka bir cihazdan göremezsin. Bağlantı düzelince tekrar giriş yaparsan buluta senkronlanır.');
+        }
         openScrapbookFromGate();
         warmSupabase();
       } catch (err) {
@@ -4889,6 +4914,22 @@ body.login-locked .cloud-status {
     el.classList.toggle('ready', mode === 'ready');
     el.classList.toggle('local', mode === 'local');
     el.classList.toggle('uploaded', mode === 'uploaded');
+  }
+
+  function bindConnectivity() {
+    // When the connection drops, reflect it immediately in the UI.
+    window.addEventListener('offline', () => {
+      setCloudStatus('Offline', 'local');
+    });
+    // When the connection returns, re-enable cloud and re-check the session
+    // so the app silently goes back online without needing a reload.
+    window.addEventListener('online', () => {
+      if (supabase) {
+        cloudAuthAvailable = true;
+        supabaseSessionPromise = null;
+      }
+      warmSupabase();
+    });
   }
 
   async function warmSupabase() {
